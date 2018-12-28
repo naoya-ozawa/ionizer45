@@ -280,7 +280,7 @@ int main (int argc, char** argv){
                 }
             }
 
-            if (trjptx[i] > -10.0){
+            if (trjptx[i] != -9999.0){
                 // Record only the ions that reached P(w)
                 mcp->Fill( trjpty[i] , TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) );
                 mcp_cpx += trjpty[i];
@@ -300,7 +300,7 @@ int main (int argc, char** argv){
         c1->cd(4);
         // Calculate the RMS
         for (int i = 0; i < Nions; ++i){
-            if (trjptx[i] > -10.0){
+            if (trjptx[i] != -9999.0){
                 mcp_rmsx += (trjpty[i] - mcp_cpx)*(trjpty[i] - mcp_cpx);
                 mcp_rmsy += ( TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) - mcp_cpy )*( TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) - mcp_cpy );
             }
