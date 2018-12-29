@@ -1,5 +1,5 @@
 // A script to 
-// 1. define a plane P(w) such that z = -x + w/sqrt(2) in Inventor coordinates
+// 1. define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. show the beam profile at the selected P(w) and calculate the center/RMS
 // Developed from the focus_analysis.cpp
 // exclusively for the design of the CNS FrEDM thermal ionizer
@@ -50,8 +50,8 @@ double dist_testplane(double w, double x_0, double x_d, double z_0, double z_d, 
     // given that the ion is ejected from (sx,sy,sz-height)_(SIMION)
     // positive: past P(w), 0: on P(w), negative: not past P(w)
     // The target surface is located <height> mm below the origin (in Inventor coordinates)
-    double w_trk = ( (x_0 + x_d + z_0 + z_d)/TMath::Sqrt(2.0) ) - (w/2.0);
-//    cout << "w_trk = " << w_trk << " mm" << endl;
+    double w_trk = ( (x_0 + x_d + z_0 + z_d)/TMath::Sqrt(2.0) ) - w;
+//    cout << "w_trk = " << w_trk << " mm around (" << x_0 << ", " << z_0 << ")" << endl;
     return w_trk;
 }
 
@@ -62,7 +62,7 @@ double t_trj(double w, double x_0, double x_d, double z_0, double z_d){
         cout << "Caught ion making no progress around (" << x_0 << ", " << z_0 << ")_(inventor)" << endl;
         return -9999.;
     }else{
-        return ( (w/TMath::Sqrt(2.0)) - x_0 - z_0 ) / ( x_d + z_d );
+        return ( (TMath::Sqrt(2.0)*w) - x_0 - z_0 ) / ( x_d + z_d );
     }
 }
 
