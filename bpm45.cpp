@@ -29,7 +29,7 @@
 
 using namespace std;
 
-double position_on_target(double x_simion, double y_simion, double xcent_simion, double ycent_simion, char* x_or_y){
+double position_on_target(double x_simion, double y_simion, double xcent_simion, double ycent_simion, const char* x_or_y){
     // Returns the position of the generated ions on the surface of the target
     // as if it is obsereved by an MCP right above the target
     // Given the center point in SIMION coordinates, it is converted in the following way:
@@ -59,14 +59,14 @@ double t_trj(double w, double x_0, double x_d, double z_0, double z_d){
     // Returns the parameter to define the intersection between the trajectory and P(w)
     // In the case of x_d + z_d = 0 (the ion is making no progress), returns -9999.
     if ( x_d+z_d == 0){
-        cout << "Caught ion making no progress around (" << x_0 << ", " << y_0 << ", " << z_0 << ")_(inventor)" << endl;
+        cout << "Caught ion making no progress around (" << x_0 << ", " << z_0 << ")_(inventor)" << endl;
         return -9999.;
     }else{
         return ( (w/TMath::Sqrt(2.0)) - x_0 - z_0 ) / ( x_d + z_d );
     }
 }
 
-double position_on_bpm(double x_inv, double y_inv, double z_inv, char* x_or_y){
+double position_on_bpm(double x_inv, double y_inv, double z_inv, const char* x_or_y){
     // Returns the position of the trajectory point t_trj(w) = (trjptx,trjpty,trjptz)_(inventor) on the MCP
     // Converted in the following way:
     // 1. shift origin vec0 = (0,0,0)_(inventor) to BPM(w) = (w/2sqrt2 , 0 , w/2sqrt2)_(inventor)
@@ -290,7 +290,7 @@ int main (int argc, char** argv){
 
 
                 // Check the position wrt P(w)
-                uord = ud_testplane(w,src_CPx,src_CPz,stepfrontX,stepfrontZ,h);
+                uord = dist_testplane(w,src_CPx,src_CPz,stepfrontX,stepfrontZ,h);
      
                 if (uord == 1){// The ion passed P(w)
                     // vec{P_b}
@@ -308,8 +308,8 @@ int main (int argc, char** argv){
                     }else{
                         double t_trj = ((w/TMath::Sqrt(2.0)) - x_0 - z_0 )/( x_d + z_d );
                         trjptx[i] = t_trj*x_d + x_0;
-                        trjpty[i] = t_trk*y_d + y_0;
-                        trjptz[i] = t_trk*z_d + z_0;
+                        trjpty[i] = t_trj*y_d + y_0;
+                        trjptz[i] = t_trj*z_d + z_0;
                         ++mcp_hits;
                         cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
 	            }
