@@ -4,6 +4,12 @@
 // Developed from the focus_analysis.cpp
 // exclusively for the design of the CNS FrEDM thermal ionizer
 
+// The trajectory should fly in the z-x plane in the (1, 0 , 1) direction in SIMION/Inventor coordinates
+// The output file (testplane-bpm.csv) should be in the form of 
+// | ion # | X position | Y position | Z position |
+// and the first line should be the header and the last line should be some character that is not a number
+
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -23,19 +29,57 @@
 
 using namespace std;
 
-double ud_testplane(double w, double sx, double sz, double trkx, double trkz, double height){
-    // Checks whether a point (trkx,trky,trkz) is past the plane P(w)
-    // returns 1: affirmative, -1: negative, or 0:the point is already on the plane
-    // given that the ion is ejected from (sx,sy,sz-height)
-    // The target surface is located <height> mm below the origin (in Inventor coordinates)
-    double w_trk = TMath::Sqrt(2.0)*(trkx-sx + trkz-(sz+height));
-//    cout << "w_trk = " << w_trk << " mm" << endl;
-    if (w_trk < w){
-        return -1;
-    }else if (w_trk > w){
-        return 1;
+double position_on_target(double x_simion, double y_simion, double xcent_simion, double ycent_simion, char* x_or_y){
+    // Returns the position of the generated ions on the surface of the target
+    // as if it is obsereved by an MCP right above the target
+    // Given the center point in SIMION coordinates, it is converted in the following way:
+    // 1. revolve -90deg around z-axis, assuming (xcent_simion,ycent_simion,zcent_simion+h)_(simion) = (0,0,0)_(inventor)
+    // Returns -9999. for any invalid input
+    if ( x_or_y == "x" ){
+        return y_simion - ycent_simion;
+    }else if ( x_or_y == "y" ){
+        return xcent_simion - x_simion;
     }else{
-        return 0;
+        return -9999.;
+    }
+}
+
+double dist_testplane(double w, double x_0, double x_d, double z_0, double z_d, double height){
+    // Checks whether a point (trkx,trky,trkz)_(SIMION) is past the plane P(w)
+    // Returns the (signed) distance from P(w)
+    // given that the ion is ejected from (sx,sy,sz-height)_(SIMION)
+    // positive: past P(w), 0: on P(w), negative: not past P(w)
+    // The target surface is located <height> mm below the origin (in Inventor coordinates)
+    double w_trk = ( (x_0 + x_d + z_0 + z_d)/TMath::Sqrt(2.0) ) - (w/2.0);
+//    cout << "w_trk = " << w_trk << " mm" << endl;
+    return w_trk;
+}
+
+double t_trj(double w, double x_0, double x_d, double z_0, double z_d){
+    // Returns the parameter to define the intersection between the trajectory and P(w)
+    // In the case of x_d + z_d = 0 (the ion is making no progress), returns -9999.
+    if ( x_d+z_d == 0){
+        cout << "Caught ion making no progress around (" << x_0 << ", " << y_0 << ", " << z_0 << ")_(inventor)" << endl;
+        return -9999.;
+    }else{
+        return ( (w/TMath::Sqrt(2.0)) - x_0 - z_0 ) / ( x_d + z_d );
+    }
+}
+
+double position_on_bpm(double x_inv, double y_inv, double z_inv, char* x_or_y){
+    // Returns the position of the trajectory point t_trj(w) = (trjptx,trjpty,trjptz)_(inventor) on the MCP
+    // Converted in the following way:
+    // 1. shift origin vec0 = (0,0,0)_(inventor) to BPM(w) = (w/2sqrt2 , 0 , w/2sqrt2)_(inventor)
+    //    (trjptx,trjpty,trjptz)_(inventor) = (trjptx-w/2sqrt2,trjpty,trjptz-w/2sqrt2)_(P)
+    // 2. revolve +45deg around y-axis
+    // 3. revolve -90deg around z-axis
+    // Returns -9999. for any invalid input
+    if ( x_or_y == "x" ){
+        return y_inv;
+    }else if ( x_or_y == "y" ){
+        return (z_inv-x_inv)/TMath::Sqrt(2.0);
+    }else{
+        return -9999.;
     }
 }
 
@@ -171,7 +215,10 @@ int main (int argc, char** argv){
 
         for (int i = 0; i < Nions; ++i){
             zxfocus->GetEntry(src_elist->GetEntry(i));
-            src->Fill(Y_position-src_CPy,src_CPx-X_position);
+//            src->Fill(Y_position-src_CPy,src_CPx-X_position);
+            double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
+            double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
+            src->Fill(srcx,srcy);
         }
         src->Draw("colz");
 
@@ -179,8 +226,10 @@ int main (int argc, char** argv){
         c1->cd(3);
         for (int i = 0; i < Nions; ++i){
             zxfocus->GetEntry(src_elist->GetEntry(i));
-            src_RMSx += (Y_position-src_CPy)*(Y_position-src_CPy);
-            src_RMSy += (X_position-src_CPx)*(X_position-src_CPx);
+            double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
+            double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
+            src_RMSx += srcx*srcx;
+            src_RMSy += srcy*srcy;
         }
         src_RMSx = TMath::Sqrt(src_RMSx/Nions);
         src_RMSy = TMath::Sqrt(src_RMSy/Nions);
@@ -238,39 +287,41 @@ int main (int argc, char** argv){
                 stepfrontX = X_position;
                 stepfrontY = Y_position;
                 stepfrontZ = Z_position;
+
+
                 // Check the position wrt P(w)
                 uord = ud_testplane(w,src_CPx,src_CPz,stepfrontX,stepfrontZ,h);
      
                 if (uord == 1){// The ion passed P(w)
-                    // vec{P_f}
-                    double x_0 = stepfrontX - src_CPx;
-                    double y_0 = stepfrontY - src_CPy;
-                    double z_0 = stepfrontZ - src_CPz - h;
+                    // vec{P_b}
+                    double x_0 = stepbackX - src_CPx;
+                    double y_0 = stepbackY - src_CPy;
+                    double z_0 = stepbackZ - src_CPz - h;
                     // vec{d} = vec{P_f} - vec{P_b}
-                    double a = stepfrontX - stepbackX;
-                    double b = stepfrontY - stepbackY;
-                    double c = stepfrontZ - stepbackZ;
+                    double x_d = stepfrontX - stepbackX;
+                    double y_d = stepfrontY - stepbackY;
+                    double z_d = stepfrontZ - stepbackZ;
                     // t_trj
-                    if (a+c == 0.0){
-                        cout << "a+c=0 !!" << endl;
+                    if (x_d+z_d == 0.0){
+                        cout << "x_d + z_d = 0 !!" << endl;
                         break;
                     }else{
-                        double t_trj = (x_0+z_0-(w/TMath::Sqrt(2.0)))/(a+c);
-                        trjptx[i] = (1.0 - t_trj)*x_0 + t_trj*(x_0 - a);
-                        trjpty[i] = (1.0 - t_trj)*y_0 + t_trj*(y_0 - b);
-                        trjptz[i] = (1.0 - t_trj)*z_0 + t_trj*(y_0 - c);
+                        double t_trj = ((w/TMath::Sqrt(2.0)) - x_0 - z_0 )/( x_d + z_d );
+                        trjptx[i] = t_trj*x_d + x_0;
+                        trjpty[i] = t_trk*y_d + y_0;
+                        trjptz[i] = t_trk*z_d + z_0;
                         ++mcp_hits;
-                        cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")" << endl;
+                        cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
 	            }
                     // connect the two steps with a line and find the intercept with P(w)
                     // use the intercept for RMS and CP calculation
                     break;
                 }else if (uord == 0){// The ion is at P(w)
-                    trjptx[i] = stepfrontX;
-                    trjpty[i] = stepfrontY;
-                    trjptz[i] = stepfrontZ;
+                    trjptx[i] = stepfrontX - src_CPx;
+                    trjpty[i] = stepfrontY - src_CPy;
+                    trjptz[i] = stepfrontZ - src_CPz - h;
                     ++mcp_hits;
-                    cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")" << endl;
+                    cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
                     break;
                 }else{
                     // Store the position for the "previous" point
@@ -282,9 +333,9 @@ int main (int argc, char** argv){
 
             if (trjptx[i] != -9999.0){
                 // Record only the ions that reached P(w)
-                mcp->Fill( trjpty[i] , TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) );
+                mcp->Fill( trjpty[i] , (trjptz[i] - trjptx[i])/TMath::Sqrt(2.0) );
                 mcp_cpx += trjpty[i];
-                mcp_cpy += TMath::Sqrt(2.0)*trjptz[i] - (w/2.0);
+                mcp_cpy += (trjptz[i] - trjptx[i])/TMath::Sqrt(2.0);
             }else{
                 cout << "Ion #" << i+1 << " did not survive!" << endl;
             }
