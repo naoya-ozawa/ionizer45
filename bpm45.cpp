@@ -251,7 +251,6 @@ int main (int argc, char** argv){
 
         // Show beam profile at the given w with end view (y-->x, +z-x-->y) 
         c1->cd(2);
-        int uord = -9999;
 
         double stepfrontX = 0.0;
         double stepbackX = 0.0;
@@ -283,48 +282,43 @@ int main (int argc, char** argv){
             TEventList *trj = (TEventList *)gDirectory->Get("trj");
             for (int j = 0; j < trj->GetN(); ++j){
                 zxfocus->GetEntry(trj->GetEntry(j));
-                // Store the position for the "current" point
+                // Store the position for the "front"/current point vec{P_f}
                 stepfrontX = X_position;
                 stepfrontY = Y_position;
                 stepfrontZ = Z_position;
 
+                // vec{P_b}
+                double x_0 = stepbackX - src_CPx;
+                double y_0 = stepbackY - src_CPy;
+                double z_0 = stepbackZ - src_CPz - h;
+                // vec{d} = vec{P_f} - vec{P_b}
+                double x_d = stepfrontX - stepbackX;
+                double y_d = stepfrontY - stepbackY;
+                double z_d = stepfrontZ - stepbackZ;
+
 
                 // Check the position wrt P(w)
-                uord = dist_testplane(w,src_CPx,src_CPz,stepfrontX,stepfrontZ,h);
+                double d_p = dist_testplane(w,x_0,x_d,z_0,z_d,h);
      
-                if (uord == 1){// The ion passed P(w)
-                    // vec{P_b}
-                    double x_0 = stepbackX - src_CPx;
-                    double y_0 = stepbackY - src_CPy;
-                    double z_0 = stepbackZ - src_CPz - h;
-                    // vec{d} = vec{P_f} - vec{P_b}
-                    double x_d = stepfrontX - stepbackX;
-                    double y_d = stepfrontY - stepbackY;
-                    double z_d = stepfrontZ - stepbackZ;
+                if ( d_p > 0.0 ){// The ion passed P(w)
                     // t_trj
-                    if (x_d+z_d == 0.0){
-                        cout << "x_d + z_d = 0 !!" << endl;
-                        break;
-                    }else{
-                        double t_trj = ((w/TMath::Sqrt(2.0)) - x_0 - z_0 )/( x_d + z_d );
-                        trjptx[i] = t_trj*x_d + x_0;
-                        trjpty[i] = t_trj*y_d + y_0;
-                        trjptz[i] = t_trj*z_d + z_0;
-                        ++mcp_hits;
-                        cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
-	            }
+                    trjptx[i] = t_trj(w,x_0,x_d,z_0,z_d)*x_d + x_0;
+                    trjpty[i] = t_trj(w,x_0,x_d,z_0,z_d)*y_d + y_0;
+                    trjptz[i] = t_trj(w,x_0,x_d,z_0,z_d)*z_d + z_0;
+                    ++mcp_hits;
+                    cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
                     // connect the two steps with a line and find the intercept with P(w)
                     // use the intercept for RMS and CP calculation
                     break;
-                }else if (uord == 0){// The ion is at P(w)
-                    trjptx[i] = stepfrontX - src_CPx;
-                    trjpty[i] = stepfrontY - src_CPy;
-                    trjptz[i] = stepfrontZ - src_CPz - h;
+                }else if ( d_p == 0.0 ){// The ion is at P(w) <=> t_trj = 1
+                    trjptx[i] = x_d + x_0;
+                    trjpty[i] = y_d + y_0;
+                    trjptz[i] = z_d + z_0;
                     ++mcp_hits;
                     cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
                     break;
                 }else{
-                    // Store the position for the "previous" point
+                    // Store the position for the "back"/previous point vec{P_b}
                     stepbackX = X_position;
                     stepbackY = Y_position;
                     stepbackZ = Z_position;
@@ -333,32 +327,37 @@ int main (int argc, char** argv){
 
             if (trjptx[i] != -9999.0){
                 // Record only the ions that reached P(w)
-                mcp->Fill( trjpty[i] , (trjptz[i] - trjptx[i])/TMath::Sqrt(2.0) );
-                mcp_cpx += trjpty[i];
-                mcp_cpy += (trjptz[i] - trjptx[i])/TMath::Sqrt(2.0);
+                double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+                double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+                mcp->Fill( bpmx , bpmy );
+                mcp_cpx += bpmx;
+                mcp_cpy += bpmy;
             }else{
                 cout << "Ion #" << i+1 << " did not survive!" << endl;
             }
 
         }
-        // Calculate the beam center
+        // Find the beam center
         mcp_cpx /= mcp_hits;
         mcp_cpy /= mcp_hits;
+
+        // Calculate the RMS
+        for (int i = 0; i < Nions; ++i){
+            if (trjptx[i] != -9999.0){
+                double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+                double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+                mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
+                mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+            }
+        }
+        mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
+        mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
 
         mcp->Draw("colz");
 
 
         c1->cd(4);
-        // Calculate the RMS
-        for (int i = 0; i < Nions; ++i){
-            if (trjptx[i] != -9999.0){
-                mcp_rmsx += (trjpty[i] - mcp_cpx)*(trjpty[i] - mcp_cpx);
-                mcp_rmsy += ( TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) - mcp_cpy )*( TMath::Sqrt(2.0)*trjptz[i] - (w/2.0) - mcp_cpy );
-            }
-        }
-        mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
-        mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
-    
+   
         TLatex l_mcp;
         l_mcp.SetTextAlign(12);
         l_mcp.SetTextSize(0.05);
