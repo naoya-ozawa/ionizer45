@@ -1,8 +1,9 @@
 // A script to 
 // 1. define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. calculate the center/RMS of the trajectory at P(w)
-// 3. search for the w that minimizes the vertical/horizontal RMS --> focal point
-// 4. view the beam profile at the MCP (manually specified)
+// 3. search for the w that minimizes the horizontal/vertical RMS --> focal point
+// 4. view the beam profiles at the horizontal/vertical focal points
+// 5. view the beam profile at the MCP (manually specified)
 // Developed from the focus_analysis.cpp
 // exclusively for the design of the CNS FrEDM thermal ionizer
 
@@ -91,7 +92,7 @@ int main (int argc, char** argv){
     // Initial test plane position (mm)
     double w = 0.0;
     // Search step (mm)
-    double wstep = 0.01;
+    double wstep = 10.0;
     // Beam Profile Monitoring resolution
     int pix = 65;
     // Target lowered from the center
@@ -216,7 +217,6 @@ int main (int argc, char** argv){
 
     for (int i = 0; i < Nions; ++i){
         zxfocus->GetEntry(src_elist->GetEntry(i));
-//            src->Fill(Y_position-src_CPy,src_CPx-X_position);
         double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
         double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
         src->Fill(srcx,srcy);
@@ -251,7 +251,7 @@ int main (int argc, char** argv){
 
 
     // Scan w up to the MCP and search for w_horizontal and w_vertical 
-    c1->cd(6);
+    c1->cd(2);
 
     double stepfrontX = 0.0;
     double stepbackX = 0.0;
@@ -270,9 +270,9 @@ int main (int argc, char** argv){
     }
 
     double w_horizontal = -9999.;
-    double rmsmin_hor = 0.0;
+    double rmsmin_hor = 9999.;
     double w_vertical = -9999.;
-    double rmsmin_ver = 0.0;
+    double rmsmin_ver = 9999.;
 
     double mcp_cpx = 0.0;
     double mcp_cpy = 0.0;
@@ -300,7 +300,7 @@ int main (int argc, char** argv){
                 stepfrontX = X_position;
                 stepfrontY = Y_position;
                 stepfrontZ = Z_position;
-                // vec{P_b}
+                // vec{P_b}_(Inventor)
                 double x_0 = stepbackX - src_CPx;
                 double y_0 = stepbackY - src_CPy;
                 double z_0 = stepbackZ - src_CPz - h;
@@ -333,6 +333,7 @@ int main (int argc, char** argv){
                     stepbackY = Y_position;
                     stepbackZ = Z_position;
                 }
+//                cout << "Ion #" << i+1 << ", w = " << w << " mm, d_p = " << d_p << " mm" << endl;
             }
             if (trjptx[i] != -9999.){
                 // Record only the ions that reached P(w)
@@ -341,6 +342,7 @@ int main (int argc, char** argv){
                 mcp_cpx += bpmx;
                 mcp_cpy += bpmy;
             }
+//            cout << "Ion #" << i+1 << ", w = " << w << " mm" << endl;
         }
         // Find the beam center
         mcp_cpx /= mcp_hits;
@@ -351,7 +353,7 @@ int main (int argc, char** argv){
                 double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
                 double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
                 mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
-                mcp_rmxy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+                mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
             }
         }
         mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
@@ -360,13 +362,16 @@ int main (int argc, char** argv){
         rms_hor->SetPoint(count,w,mcp_rmsx);
         rms_ver->SetPoint(count,w,mcp_rmsy);
 
+//        cout << "w = " << w << " mm, rms = " << mcp_rmsx << " x " << mcp_rmsy << endl;
         if (mcp_rmsx < rmsmin_hor){
             rmsmin_hor = mcp_rmsx;
             w_horizontal = w;
+//            cout << "horizontal record !!" << endl;
         }
         if (mcp_rmsy < rmsmin_ver){
             rmsmin_ver = mcp_rmsy;
             w_vertical = w;
+//            cout << "vertical record !!" << endl;
         }
         printf("w = %f mm\r",w);
         w += wstep;
@@ -407,121 +412,329 @@ int main (int argc, char** argv){
     l_rms.DrawLatex(0.15,0.6,Form("Vertical focal point at w = %g mm",w_vertical));
     l_rms.DrawLatex(0.15,0.5,Form("Minimum vertical RMSy = %g mm",rmsmin_ver));
 
+    cout << endl;
+    cout << "================================================================" << endl;
+
     // Finished focal point search
 
 
 
 
     // Horizontal FP
+    c1->cd(3);
+    TH2D *hfp = new TH2D("hfp","BP at the horizontal FP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    for (int i = 0; i < Nions; ++i){
+        zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
+        TEventList *trj = (TEventList *)gDirectory->Get("trj");
+        for (int j = 0; j < trj->GetN(); ++j){
+            zxfocus->GetEntry(trj->GetEntry(j));
+            // vec{P_f}_(SIMION)
+            stepfrontX = X_position;
+            stepfrontY = Y_position;
+            stepfrontZ = Z_position;
+            // vec{P_b}_(Inventor)
+            double x_0 = stepbackX - src_CPx;
+            double y_0 = stepbackY - src_CPy;
+            double z_0 = stepbackZ - src_CPz - h;
+            // vec{d}
+            double x_d = stepfrontX - stepbackX;
+            double y_d = stepfrontY - stepbackY;
+            double z_d = stepfrontZ - stepbackZ;
+            // check position
+            double d_p = dist_testplane(w_horizontal,x_0,x_d,z_0,z_d,h);
+            // record
+            if ( d_p > 0.0 ){// The ion passed P(w)
+                trjptx[i] = t_trj(w_horizontal,x_0,x_d,z_0,z_d)*x_d + x_0;
+                trjpty[i] = t_trj(w_horizontal,x_0,x_d,z_0,z_d)*y_d + y_0;
+                trjptz[i] = t_trj(w_horizontal,x_0,x_d,z_0,z_d)*z_d + z_0;
+                ++mcp_hits;
+                break;
+            }else if ( d_p == 0.0 ){// The ion is on P(w) <=> t_trj=1
+                trjptx[i] = x_d + x_0;
+                trjpty[i] = y_d + y_0;
+                trjptz[i] = z_d + z_0;
+                ++mcp_hits;
+                break;
+            }else{
+            // vec{P_b}
+                stepbackX = X_position;
+                stepbackY = Y_position;
+                stepbackZ = Z_position;
+            }
+        }
+        if (trjptx[i] != -9999.){
+            // Record only the ions that reached P(w)
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            cout << "Ion #" << i+1 << ", (" << bpmx << ", " << bpmy << ")" << endl;
+            hfp->Fill(bpmx,bpmy);
+            mcp_cpx += bpmx;
+            mcp_cpy += bpmy;
+        }
+    }
+    // Find the beam center
+    mcp_cpx /= mcp_hits;
+    mcp_cpy /= mcp_hits;
+    // Calculate the RMS
+    for (int i = 0; i < Nions; ++i){
+        if (trjptx[i] != -9999.){
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
+            mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+        }
+    }
+    mcp_rmsx = TMath::Sqrt(mcp_rmsx/double(mcp_hits));
+    mcp_rmsy = TMath::Sqrt(mcp_rmsy/double(mcp_hits));
+
+    stepfrontX = 0.0;
+    stepfrontY = 0.0;
+    stepfrontZ = 0.0;
+    stepbackX = 0.0;
+    stepbackY = 0.0;
+    stepbackZ = 0.0;
+    for (int i = 0; i < Nions; ++i){
+        trjptx[i] = -9999.;
+        trjpty[i] = -9999.;
+        trjptz[i] = -9999.;
+    }
+    hfp->Draw("colz");
+
+    c1->cd(8);
+    TLatex l_hfp;
+    l_hfp.SetTextAlign(12);
+    l_hfp.SetTextSize(0.05);
+    l_hfp.DrawLatex(0.15,0.9,Form("Horizontal Focal Point at w = %g mm",w_horizontal));
+    l_hfp.DrawLatex(0.15,0.8,Form("Mean X = %g mm",mcp_cpx));
+    l_hfp.DrawLatex(0.15,0.7,Form("Mean Y = %g mm",mcp_cpy));
+    l_hfp.DrawLatex(0.15,0.6,Form("RMS X = %g mm",mcp_rmsx));
+    l_hfp.DrawLatex(0.15,0.5,Form("RMS Y = %g mm",mcp_rmsy));
+    l_hfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+
+    cout << "Horizontal focal point at (" << mcp_cpx << ", " << mcp_cpy << "), w = " << w_horizontal << endl;
+    cout << "RMSx = " << mcp_rmsx << " mm, RMSy = " << mcp_rmsy << " mm" << endl;
+
+    mcp_cpx = 0.0;
+    mcp_cpy = 0.0;
+    mcp_rmsx = 0.0;
+    mcp_rmsy = 0.0;
+    mcp_hits = 0;
+
+    // end of Horizontal FP
+
+
 
 
     // Vertical FP 
+    c1->cd(4);
+    TH2D *vfp = new TH2D("vfp","BP at the vertical FP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    for (int i = 0; i < Nions; ++i){
+        zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
+        TEventList *trj = (TEventList *)gDirectory->Get("trj");
+        for (int j = 0; j < trj->GetN(); ++j){
+            zxfocus->GetEntry(trj->GetEntry(j));
+            // vec{P_f}_(SIMION)
+            stepfrontX = X_position;
+            stepfrontY = Y_position;
+            stepfrontZ = Z_position;
+            // vec{P_b}_(Inventor)
+            double x_0 = stepbackX - src_CPx;
+            double y_0 = stepbackY - src_CPy;
+            double z_0 = stepbackZ - src_CPz - h;
+            // vec{d}
+            double x_d = stepfrontX - stepbackX;
+            double y_d = stepfrontY - stepbackY;
+            double z_d = stepfrontZ - stepbackZ;
+            // check position
+            double d_p = dist_testplane(w_vertical,x_0,x_d,z_0,z_d,h);
+            // record
+            if ( d_p > 0.0 ){// The ion passed P(w)
+                trjptx[i] = t_trj(w_vertical,x_0,x_d,z_0,z_d)*x_d + x_0;
+                trjpty[i] = t_trj(w_vertical,x_0,x_d,z_0,z_d)*y_d + y_0;
+                trjptz[i] = t_trj(w_vertical,x_0,x_d,z_0,z_d)*z_d + z_0;
+                ++mcp_hits;
+                break;
+            }else if ( d_p == 0.0 ){// The ion is on P(w) <=> t_trj=1
+                trjptx[i] = x_d + x_0;
+                trjpty[i] = y_d + y_0;
+                trjptz[i] = z_d + z_0;
+                ++mcp_hits;
+                break;
+            }else{
+            // vec{P_b}
+                stepbackX = X_position;
+                stepbackY = Y_position;
+                stepbackZ = Z_position;
+            }
+        }
+        if (trjptx[i] != -9999.){
+            // Record only the ions that reached P(w)
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            hfp->Fill(bpmx,bpmy);
+            mcp_cpx += bpmx;
+            mcp_cpy += bpmy;
+        }
+    }
+    // Find the beam center
+    mcp_cpx /= mcp_hits;
+    mcp_cpy /= mcp_hits;
+    // Calculate the RMS
+    for (int i = 0; i < Nions; ++i){
+        if (trjptx[i] != -9999.){
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
+            mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+        }
+    }
+    mcp_rmsx = TMath::Sqrt(mcp_rmsx/double(mcp_hits));
+    mcp_rmsy = TMath::Sqrt(mcp_rmsy/double(mcp_hits));
+
+    stepfrontX = 0.0;
+    stepfrontY = 0.0;
+    stepfrontZ = 0.0;
+    stepbackX = 0.0;
+    stepbackY = 0.0;
+    stepbackZ = 0.0;
+    for (int i = 0; i < Nions; ++i){
+        trjptx[i] = -9999.;
+        trjpty[i] = -9999.;
+        trjptz[i] = -9999.;
+    }
+    vfp->Draw("colz");
+
+    c1->cd(9);
+    TLatex l_vfp;
+    l_vfp.SetTextAlign(12);
+    l_vfp.SetTextSize(0.05);
+    l_vfp.DrawLatex(0.15,0.9,Form("Vertical Focal Point at w = %g mm",w_vertical));
+    l_vfp.DrawLatex(0.15,0.8,Form("Mean X = %g mm",mcp_cpx));
+    l_vfp.DrawLatex(0.15,0.7,Form("Mean Y = %g mm",mcp_cpy));
+    l_vfp.DrawLatex(0.15,0.6,Form("RMS X = %g mm",mcp_rmsx));
+    l_vfp.DrawLatex(0.15,0.5,Form("RMS Y = %g mm",mcp_rmsy));
+    l_vfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+
+    cout << "Vertical focal point at (" << mcp_cpx << ", " << mcp_cpy << "), w = " << w_vertical << endl;
+    cout << "RMSx = " << mcp_rmsx << " mm, RMSy = " << mcp_rmsy << " mm" << endl;
+
+    mcp_cpx = 0.0;
+    mcp_cpy = 0.0;
+    mcp_rmsx = 0.0;
+    mcp_rmsy = 0.0;
+    mcp_hits = 0;
+
+    // end of Vertical FP
+
 
 
     // MCP
-
-
-        TH2D *mcp = new TH2D("mcp","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
-
-        for (int i = 0; i < Nions; ++i){
-
-            zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
-            TEventList *trj = (TEventList *)gDirectory->Get("trj");
-            for (int j = 0; j < trj->GetN(); ++j){
-                zxfocus->GetEntry(trj->GetEntry(j));
-                // Store the position for the "front"/current point vec{P_f}
-                stepfrontX = X_position;
-                stepfrontY = Y_position;
-                stepfrontZ = Z_position;
-
-                // vec{P_b}
-                double x_0 = stepbackX - src_CPx;
-                double y_0 = stepbackY - src_CPy;
-                double z_0 = stepbackZ - src_CPz - h;
-                // vec{d} = vec{P_f} - vec{P_b}
-                double x_d = stepfrontX - stepbackX;
-                double y_d = stepfrontY - stepbackY;
-                double z_d = stepfrontZ - stepbackZ;
-
-
-                // Check the position wrt P(w)
-                double d_p = dist_testplane(w,x_0,x_d,z_0,z_d,h);
-     
-                if ( d_p > 0.0 ){// The ion passed P(w)
-                    // t_trj
-                    trjptx[i] = t_trj(w,x_0,x_d,z_0,z_d)*x_d + x_0;
-                    trjpty[i] = t_trj(w,x_0,x_d,z_0,z_d)*y_d + y_0;
-                    trjptz[i] = t_trj(w,x_0,x_d,z_0,z_d)*z_d + z_0;
-                    ++mcp_hits;
-                    cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
-                    // connect the two steps with a line and find the intercept with P(w)
-                    // use the intercept for RMS and CP calculation
-                    break;
-                }else if ( d_p == 0.0 ){// The ion is at P(w) <=> t_trj = 1
-                    trjptx[i] = x_d + x_0;
-                    trjpty[i] = y_d + y_0;
-                    trjptz[i] = z_d + z_0;
-                    ++mcp_hits;
-                    cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
-                    break;
-                }else{
-                    // Store the position for the "back"/previous point vec{P_b}
-                    stepbackX = X_position;
-                    stepbackY = Y_position;
-                    stepbackZ = Z_position;
-                }
-            }
-
-            if (trjptx[i] != -9999.0){
-                // Record only the ions that reached P(w)
-                double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
-                double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-                mcp->Fill( bpmx , bpmy );
-                mcp_cpx += bpmx;
-                mcp_cpy += bpmy;
+    c1->cd(5);
+    TH2D *mcp = new TH2D("mcp","BP at the MCP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    for (int i = 0; i < Nions; ++i){
+        zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
+        TEventList *trj = (TEventList *)gDirectory->Get("trj");
+        for (int j = 0; j < trj->GetN(); ++j){
+            zxfocus->GetEntry(trj->GetEntry(j));
+            // vec{P_f}_(SIMION)
+            stepfrontX = X_position;
+            stepfrontY = Y_position;
+            stepfrontZ = Z_position;
+            // vec{P_b}_(Inventor)
+            double x_0 = stepbackX - src_CPx;
+            double y_0 = stepbackY - src_CPy;
+            double z_0 = stepbackZ - src_CPz - h;
+            // vec{d}
+            double x_d = stepfrontX - stepbackX;
+            double y_d = stepfrontY - stepbackY;
+            double z_d = stepfrontZ - stepbackZ;
+            // check position
+            double d_p = dist_testplane(w_mcp,x_0,x_d,z_0,z_d,h);
+            // record
+            if ( d_p > 0.0 ){// The ion passed P(w)
+                trjptx[i] = t_trj(w_mcp,x_0,x_d,z_0,z_d)*x_d + x_0;
+                trjpty[i] = t_trj(w_mcp,x_0,x_d,z_0,z_d)*y_d + y_0;
+                trjptz[i] = t_trj(w_mcp,x_0,x_d,z_0,z_d)*z_d + z_0;
+                ++mcp_hits;
+                break;
+            }else if ( d_p == 0.0 ){// The ion is on P(w) <=> t_trj=1
+                trjptx[i] = x_d + x_0;
+                trjpty[i] = y_d + y_0;
+                trjptz[i] = z_d + z_0;
+                ++mcp_hits;
+                break;
             }else{
-                cout << "Ion #" << i+1 << " did not survive!" << endl;
-            }
-
-        }
-        // Find the beam center
-        mcp_cpx /= mcp_hits;
-        mcp_cpy /= mcp_hits;
-
-        // Calculate the RMS
-        for (int i = 0; i < Nions; ++i){
-            if (trjptx[i] != -9999.0){
-                double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
-                double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-                mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
-                mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+            // vec{P_b}
+                stepbackX = X_position;
+                stepbackY = Y_position;
+                stepbackZ = Z_position;
             }
         }
-        mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
-        mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
-
-        mcp->Draw("colz");
-
-
-        c1->cd(4);
-   
-        TLatex l_mcp;
-        l_mcp.SetTextAlign(12);
-        l_mcp.SetTextSize(0.05);
-        l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
-        l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",mcp_cpx));
-        l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",mcp_cpy));
-        l_mcp.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",mcp_rmsx));
-        l_mcp.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",mcp_rmsy));
-        l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
-
-        c1->Update();
-        c1->Modified();
-
-        rootapp.Run();
-
-        data_table.Close();
+        if (trjptx[i] != -9999.){
+            // Record only the ions that reached P(w)
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            hfp->Fill(bpmx,bpmy);
+            mcp_cpx += bpmx;
+            mcp_cpy += bpmy;
+        }
     }
+    // Find the beam center
+    mcp_cpx /= mcp_hits;
+    mcp_cpy /= mcp_hits;
+    // Calculate the RMS
+    for (int i = 0; i < Nions; ++i){
+        if (trjptx[i] != -9999.){
+            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
+            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
+            mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
+            mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
+        }
+    }
+    mcp_rmsx = TMath::Sqrt(mcp_rmsx/double(mcp_hits));
+    mcp_rmsy = TMath::Sqrt(mcp_rmsy/double(mcp_hits));
+
+    stepfrontX = 0.0;
+    stepfrontY = 0.0;
+    stepfrontZ = 0.0;
+    stepbackX = 0.0;
+    stepbackY = 0.0;
+    stepbackZ = 0.0;
+    for (int i = 0; i < Nions; ++i){
+        trjptx[i] = -9999.;
+        trjpty[i] = -9999.;
+        trjptz[i] = -9999.;
+    }
+    mcp->Draw("colz");
+
+    c1->cd(10);
+    TLatex l_mcp;
+    l_mcp.SetTextAlign(12);
+    l_mcp.SetTextSize(0.05);
+    l_mcp.DrawLatex(0.15,0.9,Form("MCP at w = %g mm",w_mcp));
+    l_mcp.DrawLatex(0.15,0.8,Form("Mean X = %g mm",mcp_cpx));
+    l_mcp.DrawLatex(0.15,0.7,Form("Mean Y = %g mm",mcp_cpy));
+    l_mcp.DrawLatex(0.15,0.6,Form("RMS X = %g mm",mcp_rmsx));
+    l_mcp.DrawLatex(0.15,0.5,Form("RMS Y = %g mm",mcp_rmsy));
+    l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+
+    cout << "MCP at w = " << w_mcp << endl;
+    cout << "RMSx = " << mcp_rmsx << " mm, RMSy = " << mcp_rmsy << " mm" << endl;
+
+    mcp_cpx = 0.0;
+    mcp_cpy = 0.0;
+    mcp_rmsx = 0.0;
+    mcp_rmsy = 0.0;
+    mcp_hits = 0;
+    // end of MCP
+
+
+
+    c1->Update();
+    c1->Modified();
+    rootapp.Run();
+
+    data_table.Close();
 
     return 0;
 
