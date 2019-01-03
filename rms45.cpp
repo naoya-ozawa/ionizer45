@@ -92,7 +92,7 @@ int main (int argc, char** argv){
     // Initial test plane position (mm)
     double w = 0.0;
     // Search step (mm)
-    double wstep = 10.0;
+    double wstep = 0.01;
     // Beam Profile Monitoring resolution
     int pix = 65;
     // Target lowered from the center
@@ -422,7 +422,7 @@ int main (int argc, char** argv){
 
     // Horizontal FP
     c1->cd(3);
-    TH2D *hfp = new TH2D("hfp","BP at the horizontal FP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    TH2D *hfp = new TH2D("hfp","Horizontal Focal Point;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
         TEventList *trj = (TEventList *)gDirectory->Get("trj");
@@ -466,7 +466,7 @@ int main (int argc, char** argv){
             // Record only the ions that reached P(w)
             double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
             double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-            cout << "Ion #" << i+1 << ", (" << bpmx << ", " << bpmy << ")" << endl;
+//            cout << "Ion #" << i+1 << ", (" << bpmx << ", " << bpmy << ")" << endl;
             hfp->Fill(bpmx,bpmy);
             mcp_cpx += bpmx;
             mcp_cpy += bpmy;
@@ -527,7 +527,7 @@ int main (int argc, char** argv){
 
     // Vertical FP 
     c1->cd(4);
-    TH2D *vfp = new TH2D("vfp","BP at the vertical FP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    TH2D *vfp = new TH2D("vfp","Vertical Focal Point;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
         TEventList *trj = (TEventList *)gDirectory->Get("trj");
@@ -571,7 +571,7 @@ int main (int argc, char** argv){
             // Record only the ions that reached P(w)
             double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
             double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-            hfp->Fill(bpmx,bpmy);
+            vfp->Fill(bpmx,bpmy);
             mcp_cpx += bpmx;
             mcp_cpy += bpmy;
         }
@@ -630,7 +630,7 @@ int main (int argc, char** argv){
 
     // MCP
     c1->cd(5);
-    TH2D *mcp = new TH2D("mcp","BP at the MCP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    TH2D *mcp = new TH2D("mcp","MCP;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->Draw(">>trj",Form("ion_number == %d",i+1),"goff");
         TEventList *trj = (TEventList *)gDirectory->Get("trj");
@@ -674,7 +674,7 @@ int main (int argc, char** argv){
             // Record only the ions that reached P(w)
             double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
             double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-            hfp->Fill(bpmx,bpmy);
+            mcp->Fill(bpmx,bpmy);
             mcp_cpx += bpmx;
             mcp_cpy += bpmy;
         }
