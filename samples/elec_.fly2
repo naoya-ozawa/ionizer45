@@ -1,0 +1,21 @@
+particles {
+  coordinates = 0,
+  standard_beam {
+    n = 3,
+    tob = 0,
+    mass = 210,
+    charge = 1,
+    ke = 0.1,
+    cwf = 1,
+    color = 0,
+    direction = cone_direction_distribution {
+      axis = vector(0, 0, 1),
+      half_angle = 90,
+      fill = true
+    },
+    position = gaussian3d_distribution {
+      mean = vector(200, 210, 184),
+      stdev = vector(2, 2, 0)
+    }
+  }
+}
