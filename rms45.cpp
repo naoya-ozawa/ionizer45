@@ -356,7 +356,7 @@ int main (int argc, char** argv){
                 mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
             }
         }
-        if (mcp_hits > 0){
+        if (mcp_hits == Nions){
             mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
             mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
             rms_hor->SetPoint(count,w,mcp_rmsx);
