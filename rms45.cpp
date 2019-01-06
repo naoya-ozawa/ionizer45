@@ -513,7 +513,7 @@ int main (int argc, char** argv){
     l_hfp.DrawLatex(0.15,0.7,Form("Mean Y = %g mm",mcp_cpy));
     l_hfp.DrawLatex(0.15,0.6,Form("RMS X = %g mm",mcp_rmsx));
     l_hfp.DrawLatex(0.15,0.5,Form("RMS Y = %g mm",mcp_rmsy));
-    l_hfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+//    l_hfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
     cout << "Horizontal focal point at (" << mcp_cpx << ", " << mcp_cpy << "), w = " << w_horizontal << endl;
     cout << "RMSx = " << mcp_rmsx << " mm, RMSy = " << mcp_rmsy << " mm" << endl;
@@ -617,7 +617,7 @@ int main (int argc, char** argv){
     l_vfp.DrawLatex(0.15,0.7,Form("Mean Y = %g mm",mcp_cpy));
     l_vfp.DrawLatex(0.15,0.6,Form("RMS X = %g mm",mcp_rmsx));
     l_vfp.DrawLatex(0.15,0.5,Form("RMS Y = %g mm",mcp_rmsy));
-    l_vfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+//    l_vfp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
     cout << "Vertical focal point at (" << mcp_cpx << ", " << mcp_cpy << "), w = " << w_vertical << endl;
     cout << "RMSx = " << mcp_rmsx << " mm, RMSy = " << mcp_rmsy << " mm" << endl;
