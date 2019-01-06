@@ -356,19 +356,23 @@ int main (int argc, char** argv){
                 mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
             }
         }
-        mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
-        mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
-
-        rms_hor->SetPoint(count,w,mcp_rmsx);
-        rms_ver->SetPoint(count,w,mcp_rmsy);
+        if (mcp_hits > 0){
+            mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
+            mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
+            rms_hor->SetPoint(count,w,mcp_rmsx);
+            rms_ver->SetPoint(count,w,mcp_rmsy);
+        }else{
+            mcp_rmsx = -9999.;
+            mcp_rmsy = -9999.;
+        }
 
 //        cout << "w = " << w << " mm, rms = " << mcp_rmsx << " x " << mcp_rmsy << endl;
-        if (mcp_rmsx < rmsmin_hor){
+        if ((mcp_rmsx < rmsmin_hor)&&(mcp_rmsx >= 0.0)){
             rmsmin_hor = mcp_rmsx;
             w_horizontal = w;
 //            cout << "horizontal record !!" << endl;
         }
-        if (mcp_rmsy < rmsmin_ver){
+        if ((mcp_rmsy < rmsmin_ver)&&(mcp_rmsy >= 0.0)){
             rmsmin_ver = mcp_rmsy;
             w_vertical = w;
 //            cout << "vertical record !!" << endl;
