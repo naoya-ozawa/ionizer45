@@ -10,7 +10,7 @@
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TH2D.h>
-
+#include <TLatex.h>
 #include <TRint.h>
 
 using namespace std;
@@ -85,11 +85,24 @@ int main(int argc, char** argv){
 
 
         c1->cd(1);
-        traj_zx->Draw("AP*");
+        traj_zx->Draw("AP");
         TF1 *extractionzx = new TF1("extractionzx","x",-10.,300.);
         extractionzx->SetLineStyle(3);
         extractionzx->SetLineColor(kRed);
         extractionzx->Draw("SAME");
+
+        TF1 *extractionfit = new TF1("extractionfit","[0]*x+[1]",50.,150.);
+        extractionfit->SetParameters(1.0,0.0);
+        extractionfit->SetLineColor(kBlue);
+        traj_zx->Fit("extractionfit","M","",50.,150.);
+        extractionfit->Draw("SAME");
+
+        TLatex* tl = new TLatex();
+        tl->SetTextAlign(12);
+        tl->SetTextSize(0.03);
+        tl->DrawLatex(200.,50.,"Linear Fit");
+        tl->DrawLatex(200.,25.,Form("grad=(%g+-%g)",extractionfit->GetParameter(0),extractionfit->GetParError(0)));
+        tl->DrawLatex(200.,0.,Form("ofs=(%g+-%g)",extractionfit->GetParameter(1),extractionfit->GetParError(1)));
 
         c1->cd(2);
         traj_xy->Draw("AP");
