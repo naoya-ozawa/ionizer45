@@ -26,7 +26,7 @@ int main(int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posy | posZ |
-    const char* zx_file = "testplane-bpm.csv";
+    const char* zx_file = "./../testplane-bpm.csv";
     string line;
     int ion_number;
 

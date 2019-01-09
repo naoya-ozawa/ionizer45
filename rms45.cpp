@@ -109,7 +109,7 @@ int main (int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posY | posZ |
-    const char* zx_file = "testplane-bpm.csv";
+    const char* zx_file = "./../testplane-bpm.csv";
     string line;
 
     // Data will be stored to a ROOT file as a TTree with step number given to each step
