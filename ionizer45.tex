@@ -1,0 +1,286 @@
+\documentclass{article}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{here}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\title{README for the scripts in ionizer45}
+\author{N. Ozawa}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Prerequisites}
+The scripts are to be used with the beam simulation program SIMION or any program of that sort that could generate a data file containing the trajectory point of each timestep for all the particles in the following form:
+\begin{table}[H]
+  \begin{tabular}{lccc}
+    Ion no. & X & Y & Z \\
+    1 & $x_{11}$ & $y_{11}$ & $z_{11}$ \\
+    1 & $x_{12}$ & $y_{12}$ & $z_{12}$ \\
+    1 & $x_{13}$ & $y_{13}$ & $z_{13}$ \\
+    $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ \\
+    2 & $x_{21}$ & $y_{21}$ & $z_{21}$ \\
+    $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$
+  \end{tabular}
+\end{table}
+The data will be in the coordinates used in the simulation program, which could differ from the coordinates used in Autodesk Inventor. For SIMION, the directions of the $x$, $y$, and $z$ axes are the same, but the origin differs. It is assumed that the vertical axis (i.e. the primary beam axis) is the $z$ axis, and the extraction axis is tilted 45 degrees towards the $x$ axis i.e. $z_{{\rm Inventor}} = x_{{\rm Inventor}}$ and $y_{{\rm Inventor}} = 0$. \\
+
+In this document, the subscript $I$ denotes Inventor coordinates and the subscript $S$ denotes the SIMION coordinates.
+
+
+\section{trajectory\_display.cpp}
+This script obtains all the trajectory points from the data file and plots them in Inventor Coordinates. For simplicity, one graph projects the trajectories in the $z_I$-$x_I$ plane, and the other in the $x_I$-$y_I$ plane. Additionally, it fits the trajectory points with the function $z_I = ax_I + b$ with $a$ and $b$ as free parameters. This will check the extraction direction of the Fr beam. Ideally, $a$ should be close to 1 and $b$ should be close to 0. The term "gradient" is used for $a$ and it is an important parameter for the geometry optimization of the plate electrode.
+
+
+
+
+\section{bpm45.cpp}
+This script displays the 2D histogram of the beam profile. The beam profile is taken at an imaginary monitor tilted 45 degrees from the $y_I-z_I$ plane with respect to the $y_I$ axis and shifted distance $w$ away from the origin $(0,0,0)_I$. This imaginary monitor can be mathematically described as the set 
+\begin{equation*}
+P(w) = \left\{ (x,y,z)_I | z_I = -x_I + \sqrt{2}w, y_I \in \mathbb{R} \right\}.
+\end{equation*}
+For an ideal extraction, the Fr ion beam trajectory is exactly equivalent to the line $z_I = x_I$, which yields a beam profile of a single point
+\begin{equation*}
+\vec{BPM}(w) = \left(
+\begin{array}{c}
+	\frac{w}{\sqrt{2}}\\
+	0 \\
+	\frac{w}{\sqrt{2}}
+\end{array} \right)_I.
+\end{equation*}
+However, for the actual beam, each ion has a trajectory point
+\begin{equation*}
+\vec{trj}(w) = \left(
+\begin{array}{c}
+	trjptx \\
+	trjpty \\
+	trjptz
+\end{array} \right)_I
+\end{equation*}
+where the ion hits the imaginary monitor $P(w)$. Here we can define a new coordinate $P$, which is the coordinate on the surface of the imaginary monitor. This can be obtained by taking the difference of any point in Inventor coordinates with $\vec{BPM}$. Thus, 
+\begin{equation*}
+\vec{trj}(w) = \left(
+\begin{array}{c}
+	trjptx - \frac{w}{\sqrt{2}} \\
+	trjpty \\
+	trjptz - \frac{w}{\sqrt{2}}
+\end{array} \right)_P . \\
+\end{equation*}
+
+Furthurmore, we can define a coordinate $M$ which is the coordinate system that corresponds to the $x_M$-$y_M$ plane defined on the MCP screen. This can be understood as the "observed" coordinate system as if the imaginary monitor is examined from the downstream side of the beamline. By plotting the 2D histogram of the $\vec{trj}$ points in the $M$ coordinates, we obtain the actual image obtained behind the MCP and Phosphor screen. For example, a trajectory that is shifted upwards from the ideal extraction line will appear as a trajectory point shifted in the positive $y_M$ direction, and a trajectory that is shifted right from the ideal extraction line will appear as a trajectory point shifted in the negative $x_M$ direction. \\
+
+From the definition of $P(w)$, we can shift from the $P$ coordinates to the $M$ coordinates by first rotating 45 degrees around the $y_I$ axis
+\begin{equation*}
+R_y = \frac{1}{\sqrt{2}} \left(
+\begin{array}{ccc}
+	1 & 0 & -1 \\
+	0 & \sqrt{2} & 0 \\
+	1 & 0 & 1
+\end{array} \right)
+\end{equation*}
+and then rotating -90 degrees around the $z_I$ axis
+\begin{equation*}
+R_z = \left(
+\begin{array}{ccc}
+	0 & 1 & 0 \\
+	-1 & 0 & 0 \\
+	0 & 0 & 1
+\end{array} \right).
+\end{equation*}
+The first and second components yield the $x_M$ and $y_M$ coordinate values of the trajectory point, and the third component corresponds to the distance of the trajectory point to the monitor $P(w)$. Especially, when this third component is positive, the trajectory has already passed across $P(w)$, and when it is negative, the trajectory has not yet reached $P(w)$. \\
+
+Now we establish the method of calculating the trajectory point in $M$ coordinates based on the simulation data. First, by collecting the starting points of the trajectories, we obtain the origin of the Inventor coordinates in SIMION coordinates
+\begin{equation*}
+\vec{v_{SI}} = \left(
+\begin{array}{c}
+	x_{SI} \\
+	y_{SI} \\
+	z_{SI} + h
+\end{array} \right)
+\end{equation*}
+where $h$ is the distance of the Au target below the origin. The $x_{SI}$ and $y_{SI}$ values can be obtained by taking the average values of all the ions. By using these values any points stored in the data file could be converted to Inventor coordinates. \\
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=10.0cm]{./bpm45_fig.png}
+    \caption{The method of obtaining the beam profile.}
+    \label{fig:bpm45_fig}
+  \end{center}
+\end{figure}
+
+Only discrete points are recorded in the data file, so usually the trajectory point will be between the point $\vec{P_f}$ right after $P(w)$ and the point $\vec{P_b}$ right before $P(w)$. These points could be searched for in the following way:
+\begin{enumerate}
+	\item Pick a trajectory point $\vec{P}$ in the data file.
+	\item Record the $\vec{P}$ as the "previous point" $\vec{P_2}$ and define the succeeding point as the "next point" $\vec{P_1}$.
+	\item Step forward one point at a time and calculate the third component of $\vec{P_1}$ in $M$ coordinates.
+	\item When the third component of $\vec{P_1}$ in $M$ coordinates becomes non-negative, define $\vec{P_f} = \vec{P_1}$ and $\vec{P_b} = \vec{P_2}$.
+\end{enumerate}
+The components could be written explicitly as
+\begin{eqnarray*}
+\vec{P_f} & = & \left(
+\begin{array}{c}
+	x_{sf} \\
+	y_{sf} \\
+	z_{sf}
+\end{array} \right)_S = \left(
+\begin{array}{c}
+	x_{sf} - x_{SI} \\
+	y_{sf} - y_{SI} \\
+	z_{sf} - z_{SI} - h
+\end{array} \right)_I \\
+\vec{P_b} & = & \left(
+\begin{array}{c}
+	x_{sb} \\
+	y_{sb} \\
+	z_{sb}
+\end{array} \right)_S = \left(
+\begin{array}{c}
+	x_{sb} - x_{SI} \\
+	y_{sb} - y_{SI} \\
+	z_{sb} - z_{SI} - h
+\end{array} \right)_I
+\end{eqnarray*}
+in each coordinate system. In the script, the third component of $\vec{P_f}$ in $M$ coordinates is calculated by
+\begin{eqnarray*}
+& & \left( 
+\begin{array}{ccc}
+	0 & 0 & 1
+\end{array} \right) R_z R_y \left( \vec{P_f}_I - \vec{BPM}(w) \right) \\
+& = & \frac{1}{\sqrt{2}} \left(
+\begin{array}{ccc}
+	0 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{ccc}
+	0 & 1 & 0 \\
+	-1 & 0 & 0 \\
+	0 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{ccc}
+	1 & 0 & -1 \\
+	0 & \sqrt{2} & 0 \\
+	1 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{c}
+	x_{sf} - x_{SI} - \frac{w}{\sqrt{2}} \\
+	y_{sf} - y_{SI} \\
+	z_{sf} - z_{SI} - h - \frac{w}{\sqrt{2}}
+\end{array} \right)_P \\
+& = & \frac{1}{\sqrt{2}} \left(
+\begin{array}{ccc}
+	1 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{c}
+	x_{sf} - x_{SI} - \frac{w}{\sqrt{2}} \\
+	y_{sf} - y_{SI} \\
+	z_{sf} - z_{SI} - h - \frac{w}{\sqrt{2}}
+\end{array} \right)_P \\
+& = & \frac{x_{sf}-x_{SI}+z_{sf}-z_{SI}-h}{\sqrt{2}} - w. \\
+\end{eqnarray*}
+
+In order to find the trajectory point on $P(w)$, we assume that the ion flies in a straight line from point $\vec{P_b}$ to point $\vec{P_f}$. Then, using a parameter $t_{trj}(w)$ such that $0 \le t_{trj}(w) < 1$, and rewriting the two points as
+\begin{eqnarray*}
+\vec{d} & = & \vec{P_f} - \vec{P_b} \\
+& = & \left(
+\begin{array}{c}
+	x_{sf} - x_{sb} \\
+	y_{sf} - y_{sb} \\
+	z_{sf} - z_{sb}
+\end{array} \right) =: \left(
+\begin{array}{c}
+	x_d \\
+	y_d \\
+	z_d
+\end{array} \right) \\
+\vec{P_b} & = & \left(
+\begin{array}{c}
+	x_{sb} - x_{SI} \\
+	y_{sb} - y_{SI} \\
+	z_{sb} - z_{SI} - h
+\end{array} \right)_I =: \left(
+\begin{array}{c}
+	x_0 \\
+	y_0 \\
+	z_0
+\end{array} \right),
+\end{eqnarray*}
+the trajectory point on $P(w)$ can be identified by
+\begin{equation*}
+\vec{trj}(w) = t_{trj}(w) \vec{d} + \vec{P_b} = \left(
+\begin{array}{c}
+	t_{trj} x_d + x_0 \\
+	t_{trj} y_d + y_0 \\
+	t_{trj} z_d + z_0
+\end{array} \right).
+\end{equation*}
+Recalling the definition of $P(w)$, the condition for the trajectory point to be on the plane $P(w)$ is $trjptz = -trjptx + \sqrt{2}w$, thus
+\begin{eqnarray*}
+t_{trj} z_d + z_0 & = & -t_{trj} x_d - x_0 + \sqrt{2}w \\
+t_{trj} (z_d + x_d) & = & -z_0 - x_0 + \sqrt{2}w \\
+t_{trj} & = & \frac{-z_0-x_0+\sqrt{2}w}{z_d+x_d}. \\
+\end{eqnarray*}
+
+Therefore, after the points $\vec{P_f} = \left(
+\begin{array}{c}
+	x_d + x_0 \\
+	y_d + y_0 \\
+	z_d + z_0
+\end{array} \right)_I$ and $\vec{P_b} = \left(
+\begin{array}{c}
+	x_0 \\
+	y_0 \\
+	z_0
+\end{array} \right)_I$ have been determined from the data file and the parameter $t_{trj}(w) = \frac{-z_0-x_0+\sqrt{2}w}{z_d+x_d}$ has been calculated, the trajectory point on $P(w)$ in $M$ coordinates is estimated by
+\begin{eqnarray*}
+\vec{trj}(w)_M & = & R_z R_y \left\{ t_{trj}(w) \left( \vec{P_f}_I - \vec{P_b}_I \right) + \vec{P_b}_I - \vec{BPM}(w) \right\} \\
+& = & \frac{1}{\sqrt{2}} \left(
+\begin{array}{ccc}
+	0 & 1 & 0 \\
+	-1 & 0 & 0 \\
+	0 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{ccc}
+	1 & 0 & -1 \\
+	0 & \sqrt{2} & 0 \\
+	1 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{c}
+	t_{trj}(w) x_d + x_0 - \frac{w}{\sqrt{2}}\\
+	t_{trj}(w) y_d + y_0 \\
+	t_{trj}(w) z_d + z_0 - \frac{w}{\sqrt{2}}
+\end{array} \right) \\
+& = & \frac{1}{\sqrt{2}} \left(
+\begin{array}{ccc}
+	0 & \sqrt{2} & 0 \\
+	-1 & 0 & 1 \\
+	1 & 0 & 1
+\end{array} \right) \left(
+\begin{array}{c}
+	t_{trj}(w) x_d + x_0 - \frac{w}{\sqrt{2}} \\
+	t_{trj}(w) y_d + y_0 \\
+	t_{trj}(w) z_d + z_0 - \frac{w}{\sqrt{2}}
+\end{array} \right) \\
+& = & \frac{1}{\sqrt{2}} \left(
+\begin{array}{c}
+	\sqrt{2}t_{trj}(w) y_d + \sqrt{2} y_0 \\
+	t_{trj}(w) \left( z_d - x_d \right) + z_0 - x_0 \\
+	t_{trj}(w) \left( z_d + x_d \right) + z_0 + x_0 - \sqrt{2}w
+\end{array} \right) \\
+& = & \left(
+\begin{array}{c}
+	t_{trj}(w) y_d + y_0 \\
+	\frac{t_{trj}(w) \left( z_d-x_d \right) + z_0-x_0}{\sqrt{2}} \\
+	0
+\end{array} \right). \\
+\end{eqnarray*}
+
+Suppose $N_{Fr}$ ions are flown in the simulation. Then, by repeating the above procedure for all $N_{Fr}$ ions, the mean position of the ion beam $(x_c, y_c)_M$ and their standard deviations $(\sigma_x,\sigma_y)_M$ can be calculated.
+
+
+
+
+\section{rms45.cpp}
+The beam mean point $(x_c,y_c)_M$ and standard deviation $(\sigma_x,\sigma_y)_M$ differ for different values of $w$, the position of the imaginary beam profile monitor. Generally, an ion beam has a beam waist, where the standard deviation decreases and reaches a minimum, and then diverges again. By scanning the standard deviations across a range of values of $w$, it is possible to deduce the position of the beam waist, or the beam "focal point". Since on the beam profile monitor, the $x_M$ direction is the "horizontal" direction and the $y_M$ direction is the "vertical" direction, the distance $w$ where $\sigma_x$ is minimized will be called the "horizontal focal distance" $w_{{\rm HFP}}$ and the distance $w$ where $\sigma_y$ is minimized will be called the "vertical focal distance" $w_{{\rm VFP}}$. Note that by this method, the case where the beam "gradient" is far from 1 will be inaccurate. For accuracy, the tilt angle of $P(w)$ must be adjusted to match the beam "gradient".
+
+
+\end{document}
