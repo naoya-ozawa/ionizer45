@@ -3,6 +3,7 @@
 \usepackage{here}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{cite}
 
 \title{README for the scripts in ionizer45}
 \author{N. Ozawa}
@@ -281,6 +282,63 @@ Suppose $N_{Fr}$ ions are flown in the simulation. Then, by repeating the above 
 
 \section{rms45.cpp}
 The beam mean point $(x_c,y_c)_M$ and standard deviation $(\sigma_x,\sigma_y)_M$ differ for different values of $w$, the position of the imaginary beam profile monitor. Generally, an ion beam has a beam waist, where the standard deviation decreases and reaches a minimum, and then diverges again. By scanning the standard deviations across a range of values of $w$, it is possible to deduce the position of the beam waist, or the beam "focal point". Since on the beam profile monitor, the $x_M$ direction is the "horizontal" direction and the $y_M$ direction is the "vertical" direction, the distance $w$ where $\sigma_x$ is minimized will be called the "horizontal focal distance" $w_{{\rm HFP}}$ and the distance $w$ where $\sigma_y$ is minimized will be called the "vertical focal distance" $w_{{\rm VFP}}$. Note that by this method, the case where the beam "gradient" is far from 1 will be inaccurate. For accuracy, the tilt angle of $P(w)$ must be adjusted to match the beam "gradient".
+
+
+
+
+\section{emittance45.cpp}
+Based on the bpm45.cpp, we now examine the emittance on the plane $P(w)$. The "emittance", by definition, is the area occupied by the beam in the phase space $(x,\ y,\ z,\ p_x,\ p_y,\ p_z)$. It is a measure of the beam quality; a large emittance means that either the positions or the momenta, or both, of the beam are spread out broadly, resulting in a non-laminar flow. In our case, the longitudinal direction ($z$ direction in the $M$ coordinates), the horizontal transverse direction ($x$ direction in the $M$ coordinates), and the vertical transverse direction ($y$ direction in the $M$ coordinates) are assumed to be independent. Thus we observe the $x_M$-${p_x}_M$ plot (the horizontal emittance) and the $y_M$-${p_y}_M$ plot (the vertical emittance), and discuss the quality of the beam in each direction. Furthermore, since our beam is moving towards a single direction as a whole, we substitute ${p_x}_M$ with $\theta_x = \tan^{-1}{x'} = \tan^{-1}{\frac{dx_M}{dz_M}} = \tan^{-1}{\frac{\frac{dx_M}{dt}}{\frac{dz_M}{dt}}} = \tan^{-1}{\frac{v_x}{v_z}}$ and ${p_y}_M$ with $\theta_y = \tan^{-1}{y'} = \tan^{-1}{\frac{v_y}{v_z}}$ in the units of radians. A sample of this is given in figures \ref{fig:emittance50},\ref{fig:emittance100}, and \ref{fig:emittance200}.It can be seen looking at the broad shape that the beam is gradually converging towards $w \approx 75$ mm, and then diverges as it goes on to $w = 200$ mm. However, observing the majority of the ions, all three figures display positive $x_M$-$x'$ and $y_M$-$y'$ correlations. This means that although the beam "halo" seems to be focused at one point and diverges as it proceeds, the majority of the ions, or the "most dense part" of the beam gradually diverges from the beginning. 
+
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[clip,width=8.0cm,angle=-90]{./emittance45demo_50.pdf}
+    \caption{Emittance plot at $w = 50$ mm.\label{fig:emittance50}}
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[clip,width=8.0cm,angle=-90]{./emittance45demo_100.pdf}
+    \caption{Emittance plot at $w = 100$ mm.\label{fig:emittance100}}
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[clip,width=8.0cm,angle=-90]{./emittance45demo_200.pdf}
+    \caption{Emittance plot at $w = 200$ mm.\label{fig:emittance200}}
+  \end{center}
+\end{figure}
+
+
+
+
+\subsection{Calculating the emittance}
+Based on the obtained histogram, there are multiple methods of calculating the emittance. A straightforward way is to use a StDev-emittance $\epsilon_{\sigma_{x_M,x'/\ y_M,y'}}$. This is defined as the area of the 1$\sigma$ interval of the histogram, obtained by fitting it with a 2D Gaussian. For a perfectly axis-aligned ellipse, the $x_M$-$x'$ distribution could be fitted by the function
+\begin{eqnarray*}
+f(x_M,\ x') & = & A_x \exp{\left[ -\left\{ \frac{\left(x_M-{x_M}_0\right)^2}{2{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{2{\sigma_{x'}}^2} \right\}\right]}.
+\end{eqnarray*}
+The general data results in a tilted ellipse at a clockwise angle $\varphi$, which can be formulated as
+\begin{eqnarray*}
+& & \frac{\left(x_M-{x_M}_0\right)^2}{2{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{2{\sigma_{x'}}^2} \\
+& \rightarrow & \frac{\left\{ \left(x_M-{x_M}_0\right)\cos{\varphi} - \left(x'-{x'}_0\right)\sin{\varphi} \right\}^2}{2{\sigma_{x_M}}^2} + \frac{\left\{ \left(x_M-{x_M}_0\right)\sin{\varphi} + \left(x'-{x'}_0\right)\cos{\varphi} \right\}^2}{2{\sigma_{x'}}^2} \\
+& = & \left( \frac{\cos^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \\
+& & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{4{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{4{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
+& & \, \, \, \, \, \, \, \, \, \, \, \, + \left( \frac{\sin^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 .
+\end{eqnarray*}
+Thus, by fitting the data with the function 
+\begin{eqnarray*}
+f(x_M,\ x',\ \varphi) & = & A_x \exp \left[ -\left\{ \left( \frac{\cos^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \right. \right. \\
+& & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{4{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{4{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
+& & \, \, \, \, \, \, \, \, \, \, \, \, \left. \left. + \left( \frac{\sin^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 \right\} \right],
+\end{eqnarray*}
+the StDev-emittance can be calculated by
+\begin{eqnarray*}
+\epsilon_{\sigma_{x_M,x'}} & = & \sigma_{x_M} \sigma_{x'}
+\end{eqnarray*}
+in units of [$\pi$ mm rad]. The other parameters: ${x_M}_0$ is equivalent to the beam horizontal center point, and ${x'}_0$ is equivalent to the drift of the beam away from the 45-deg direction. For an ideal beam, ${x_M}_0 = 0$ and ${x'}_0 = 0$ should be obtained. The same procedure could be followed for the vertical, or $(y_M,\ y')$ direction.
+
 
 
 \end{document}
