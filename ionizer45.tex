@@ -312,6 +312,42 @@ Based on the bpm45.cpp, we now examine the emittance on the plane $P(w)$. The "e
 \end{figure}
 
 
+The algorithm for calculating the $x'$ and $y'$ of the particle is almost identical with that of bpm45.cpp. By using the data file in the form
+\begin{table}[H]
+  \begin{tabular}{lcccccc}
+    Ion no. & $x_S$ & $y_S$  & $z_S$ & $v_x$ & $v_y$ & $v_z$ \\
+    1 & $x_{11}$ & $y_{11}$ & $z_{11}$ & ${v_x}_{11}$ & ${v_y}_{11}$ & ${v_z}_{11}$ \\
+    1 & $x_{12}$ & $y_{12}$ & $z_{12}$ & ${v_x}_{12}$ & ${v_y}_{12}$ & ${v_z}_{12}$ \\
+    1 & $x_{13}$ & $y_{13}$ & $z_{13}$ & ${v_x}_{13}$ & ${v_y}_{13}$ & ${v_z}_{13}$ \\
+    $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ \\
+    2 & $x_{21}$ & $y_{21}$ & $z_{21}$ & ${v_x}_{21}$ & ${v_y}_{21}$ & ${v_z}_{21}$ \\
+    $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ & $\cdots$ 
+  \end{tabular}
+\end{table}
+we can obtain the position and the velocity for each trajectory point. By following the velocity along with the position, the velocity at the trajectory point in $M$ coordinates could be approximated by
+\begin{eqnarray*}
+\frac{d}{dt} \vec{trj}(w) & = & \left(
+\begin{array}{c}
+	v_x \\
+	v_y \\
+	v_z
+\end{array} \right) \\
+& = & \frac{d}{dt} \left(
+\begin{array}{c}
+	t_{trj}(w) y_d + y_0 \\
+	\frac{t_{trj}(w) \left( z_d-x_d \right) + z_0-x_0}{\sqrt{2}} \\
+	\frac{t_{trj}(w) \left( z_d+x_d \right) + z_0+x_0}{\sqrt{2}}
+\end{array} \right) \\
+& = & \left(
+\begin{array}{c}
+	t_{trj}(w) {v_d}_y + {v_0}_y \\
+	\frac{t_{trj}(w) \left({v_d}_z-{v_d}_x\right) + {v_d}_z-{v_d}_x}{\sqrt{2}} \\
+	\frac{t_{trj}(w) \left({v_d}_z+{v_d}_x\right) + {v_d}_z+{v_d}_x}{\sqrt{2}}
+\end{array} \right).
+\end{eqnarray*}
+The values of $\tan^{-1}{x'} = \tan^{-1}{\frac{v_x}{v_z}}$ and $\tan^{-1}{y'} = \tan^{-1}{\frac{v_y}{v_z}}$ are each plotted against $x_M$ and $y_M$ to yield the emittance diagram for the horizontal and vertical directions.
+
+
 
 
 \subsection{Calculating the emittance}
