@@ -359,7 +359,7 @@ From this fit, the 1$\sigma$ interval becomes the area bounded by the ellipse
 \begin{equation*}
 \frac{{x_M}^2}{{\sigma_{x_M}}^2} + \frac{{x'}^2}{{\sigma_{x'}}^2} = 1.
 \end{equation*}
-In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,\ {x'}_0\right)$ and rotated clockwise at an angle $\varphi$. This transformation can be formulated by
+In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,\ {x'}_0\right)$ and rotated counterclockwise at an angle $\varphi$. This transformation can be formulated by
 \begin{eqnarray*}
 \left(
 \begin{array}{c}
@@ -367,8 +367,8 @@ In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,
 	Y
 \end{array} \right) & = & \left(
 \begin{array}{cc}
-	\cos{\varphi} & \sin{\varphi} \\
-	-\sin{\varphi} & \cos{\varphi}
+	\cos{\varphi} & -\sin{\varphi} \\
+	\sin{\varphi} & \cos{\varphi}
 \end{array} \right) \left(
 \begin{array}{c}
 	x_M - {x_M}_0 \\
@@ -396,8 +396,8 @@ The parametric form can be obtained similarly by
 \end{array} \right) \\
 & \rightarrow & \left(
 \begin{array}{cc}
-	\cos{\varphi} & \sin{\varphi} \\
-	-\sin{\varphi} & \cos{\varphi}
+	\cos{\varphi} & -\sin{\varphi} \\
+	\sin{\varphi} & \cos{\varphi}
 \end{array} \right) \left(
 \begin{array}{c}
 	\sigma_{x_M} \cos{\alpha} \\
@@ -410,7 +410,7 @@ The parametric form can be obtained similarly by
 \end{eqnarray*}
 Thus, by fitting the data with the function 
 \begin{eqnarray*}
-f\left(x_M,\ x',\ ,\ {x_M}_0,\ {x'}_0,\ \varphi\right) & = & A_x \exp \left[ -\left\{ \left( \frac{\cos^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \right. \right. \\
+f\left(x_M,\ x',\ {x_M}_0,\ {x'}_0,\ \varphi\right) & = & A_x \exp \left[ -\left\{ \left( \frac{\cos^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \right. \right. \\
 & & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{4{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{4{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
 & & \, \, \, \, \, \, \, \, \, \, \, \, \left. \left. + \left( \frac{\sin^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 \right\} \right],
 \end{eqnarray*}
