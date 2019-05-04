@@ -377,11 +377,11 @@ In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,
 \end{eqnarray*}
 which transfers the ellipse into
 \begin{eqnarray*}
-& & \frac{\left(x_M-{x_M}_0\right)^2}{2{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{2{\sigma_{x'}}^2} \\
-& \rightarrow & \frac{\left\{ \left(x_M-{x_M}_0\right)\cos{\varphi} - \left(x'-{x'}_0\right)\sin{\varphi} \right\}^2}{2{\sigma_{x_M}}^2} + \frac{\left\{ \left(x_M-{x_M}_0\right)\sin{\varphi} + \left(x'-{x'}_0\right)\cos{\varphi} \right\}^2}{2{\sigma_{x'}}^2} \\
-& = & \left( \frac{\cos^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \\
-& & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{4{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{4{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
-& & \, \, \, \, \, \, \, \, \, \, \, \, + \left( \frac{\sin^2{\varphi}}{2{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{2{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 .
+& & 1 = \frac{\left(x_M-{x_M}_0\right)^2}{{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{{\sigma_{x'}}^2} \\
+& \rightarrow & 1 = \frac{\left\{ \left(x_M-{x_M}_0\right)\cos{\varphi} - \left(x'-{x'}_0\right)\sin{\varphi} \right\}^2}{{\sigma_{x_M}}^2} + \frac{\left\{ \left(x_M-{x_M}_0\right)\sin{\varphi} + \left(x'-{x'}_0\right)\cos{\varphi} \right\}^2}{{\sigma_{x'}}^2} \\
+& & 1 = \left( \frac{\cos^2{\varphi}}{{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \\
+& & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
+& & \, \, \, \, \, \, \, \, \, \, \, \, + \left( \frac{\sin^2{\varphi}}{{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 .
 \end{eqnarray*}
 The parametric form can be obtained similarly by
 \begin{eqnarray*}
@@ -416,9 +416,9 @@ f\left(x_M,\ x',\ {x_M}_0,\ {x'}_0,\ \varphi\right) & = & A_x \exp \left[ -\left
 \end{eqnarray*}
 the StDev-emittance can be calculated by
 \begin{eqnarray*}
-\epsilon_{\sigma_{x_M,x'}} & = & \sigma_{x_M} \sigma_{x'}
+\epsilon_{\sigma_{x_M,x'}} & = & \sigma_{x_M} \sigma_{x'} \pm \sqrt{\left( \sigma_{x_M} \Delta \sigma_{x'} \right)^2 + \left( \Delta \sigma_{x_M} \sigma_{x'}  \right)^2 }
 \end{eqnarray*}
-in units of [$\pi$ m rad]. The other parameters: ${x_M}_0$ is equivalent to the beam horizontal center point, and ${x'}_0$ is equivalent to the drift of the beam away from the 45-deg direction. For an ideal beam, ${x_M}_0 = 0$ and ${x'}_0 = 0$ should be obtained. The same procedure could be followed for the vertical, or $\left(y_M,\ y'\right)$ direction.
+in units of [$\pi$ m rad]. Here, $\Delta \sigma_{x_M}$ and $\Delta \sigma_{x'}$ each stands for its fit error. The other parameters: ${x_M}_0$ corresponds to the beam horizontal center point, and ${x'}_0$ corresponds to the degree of divergence of the beam. For an ideal laminar beam in the 45-degree direction, ${x_M}_0 = 0$ and ${x'}_0 = 0$ should be obtained, along with $\varphi = 0$ and $\sigma_{x'} = 0$. The same procedure could be followed for the vertical, or $\left(y_M,\ y'\right)$ direction.
 
 
 
