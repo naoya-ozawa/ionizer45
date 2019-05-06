@@ -19,7 +19,8 @@
 #include <TGraphErrors.h>
 #include <TMultiGraph.h>
 #include <TCanvas.h>
-
+#include <TF2.h>
+#include <TPolyLine3D.h>
 #include <TH2D.h>
 #include <TLatex.h>
 
@@ -110,6 +111,37 @@ double velocity_on_bpm(double vx_inv, double vy_inv, double vz_inv, const char* 
 
 
 
+
+double phase_2ddist (double *x, double *par){
+    double A_x = par[0];
+    double x0_0 = par[1]; // x_M_0/y_M_0
+    double x1_0 = par[2]; // x'_0/y'_0
+    double phi = par[3];
+    double sigma_x0 = par[4]; // StDev_x_M/StDev_y_M
+    double sigma_x1 = par[5]; // StDev_x'/StDev_y'
+
+    double a = (TMath::Cos(phi)*TMath::Cos(phi))/(2.0*sigma_x0*sigma_x0) + (TMath::Sin(phi)*TMath::Sin(phi))/(2.0*sigma_x1*sigma_x1);
+    double b = -TMath::Sin(2.0*phi)/(4.0*sigma_x0*sigma_x0) + TMath::Sin(2.0*phi)/(4.0*sigma_x1*sigma_x1);
+    double c = (TMath::Sin(phi)*TMath::Sin(phi))/(2.0*sigma_x0*sigma_x0) + (TMath::Cos(phi)*TMath::Cos(phi))/(2.0*sigma_x1*sigma_x1);
+
+    double XX = (x[0] - x0_0)*(x[0] - x0_0);
+    double XY = (x[0] - x0_0)*(x[1] - x1_0);
+    double YY = (x[1] - x1_0)*(x[1] - x1_0);
+
+    return A_x * TMath::Exp(- (a*XX + 2.0*b*XY + c*YY));
+}
+
+
+
+double product_error (double var1, double var2, double varE1, double varE2){
+    double a = var1*varE2;
+    double b = varE1*var2;
+    return TMath::Sqrt(a*a + b*b);
+}
+
+
+
+
 int main (int argc, char** argv){
 
     // Check input number here (w must be an input parameter)
@@ -161,7 +193,7 @@ int main (int argc, char** argv){
     int diagram = 65;
 
     // Target lowered from the center
-    double h = 27.0; // mm
+    double h = 29.0; // mm
 
 
     // Convert CSV to ROOT
@@ -458,17 +490,108 @@ int main (int argc, char** argv){
     l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
 
+
+
+
+
+
     c1->cd(3);
+
+    int ellipse_points = 1000;
     
     hemit->Draw("COLZ");
+
+    TF2 *hemit_fit = new TF2("hemit_fit",phase_2ddist,-20.,20.,-20.,20.,6);
+    hemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
+//    hemit_fit->SetLineWidth(1);
+//    hemit_fit->SetLineStyle(2);
+
+    hemit->Fit("hemit_fit","0");
+//    hemit->Fit("hemit_fit");
+
+    double xM_mean = hemit_fit->GetParameter(1);
+    double xM_mean_ERR = hemit_fit->GetParError(1);
+    double xp_mean = hemit_fit->GetParameter(2);
+    double xp_mean_ERR = hemit_fit->GetParError(2);
+    double phi_X = hemit_fit->GetParameter(3);
+    double phi_X_ERR = hemit_fit->GetParError(3);
+
+    double StDev_xM = hemit_fit->GetParameter(4);
+    double StDev_xM_ERR = hemit_fit->GetParError(4);
+    double StDev_xp = hemit_fit->GetParameter(5);
+    double StDev_xp_ERR = hemit_fit->GetParError(5);
+
+    double stdev_emittance_x = StDev_xM*StDev_xp;
+    double stdev_emittance_x_err = product_error(StDev_xM,StDev_xp,StDev_xM_ERR,StDev_xp_ERR);
+
+    // Draw the horizontal 1-sigma ellipse
+    TPolyLine3D *hemit_1sigma = new TPolyLine3D(ellipse_points);
+    for (int k = 0; k < ellipse_points; ++k){
+        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+        double X = TMath::Cos(phi_X)*StDev_xM*cosfactor - TMath::Sin(phi_X)*StDev_xp*sinfactor + xM_mean;
+        double Y = TMath::Sin(phi_X)*StDev_xM*cosfactor + TMath::Cos(phi_X)*StDev_xp*sinfactor + xp_mean;
+
+        hemit_1sigma->SetPoint(k,X,Y,10.);
+    }
+    hemit_1sigma->SetLineWidth(3);
+    hemit_1sigma->SetLineColor(2);
+    hemit_1sigma->Draw("SAME");
+
+
+
 
 
     c1->cd(6);
     vemit->Draw("COLZ");
 
 
+    TF2 *vemit_fit = new TF2("vemit_fit",phase_2ddist,-20.,20.,-20.,20.,6);
+    vemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
+
+    vemit->Fit("vemit_fit","0");
+
+    double yM_mean = vemit_fit->GetParameter(1);
+    double yM_mean_ERR = vemit_fit->GetParError(1);
+    double yp_mean = vemit_fit->GetParameter(2);
+    double yp_mean_ERR = vemit_fit->GetParError(2);
+    double phi_Y = vemit_fit->GetParameter(3);
+    double phi_Y_ERR = vemit_fit->GetParError(3);
+
+    double StDev_yM = vemit_fit->GetParameter(4);
+    double StDev_yM_ERR = vemit_fit->GetParError(4);
+    double StDev_yp = vemit_fit->GetParameter(5);
+    double StDev_yp_ERR = vemit_fit->GetParError(5);
+
+    double stdev_emittance_y = StDev_yM*StDev_yp;
+    double stdev_emittance_y_err = product_error(StDev_yM,StDev_yp,StDev_yM_ERR,StDev_yp_ERR);
 
 
+
+    // Draw the vertical 1-sigma ellipse
+    TPolyLine3D *vemit_1sigma = new TPolyLine3D(ellipse_points);
+    for (int k = 0; k < ellipse_points; ++k){
+        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+        double X = TMath::Cos(phi_Y)*StDev_yM*cosfactor - TMath::Sin(phi_Y)*StDev_yp*sinfactor + yM_mean;
+        double Y = TMath::Sin(phi_Y)*StDev_yM*cosfactor + TMath::Cos(phi_Y)*StDev_yp*sinfactor + yp_mean;
+
+        vemit_1sigma->SetPoint(k,X,Y,10.);
+    }
+    vemit_1sigma->SetLineWidth(3);
+    vemit_1sigma->SetLineColor(2);
+    vemit_1sigma->Draw("SAME");
+
+
+    cout << endl;
+    cout << "===================================================================" << endl;
+    cout << "1-sigma Emittance-X = (" << stdev_emittance_x << " +- " << stdev_emittance_x_err << ") [pi mm mrad]" << endl;
+    cout << "===================================================================" << endl;
+    cout << "1-sigma Emittance-Y = (" << stdev_emittance_y << " +- " << stdev_emittance_y_err << ") [pi mm mrad]" << endl;
+    cout << "===================================================================" << endl;
+    cout << "Fitted Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
+    cout << "Fitted Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;
+    cout << "(dx'/dxM, dy'/dyM) = (" << TMath::Tan(phi_X) << " mrad/mm, " << TMath::Tan(phi_Y) << " mrad/mm)" << endl;
 
 
     c1->Update();
