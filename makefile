@@ -10,5 +10,11 @@ view:	trajectory_display.cpp
 emittance:	emittance45.cpp
 	`root-config --cxx --cflags` -o emittance45 emittance45.cpp `root-config --glibs`
 
+emitscan:	emitscan45.cpp
+	`root-config --cxx --cflags` -o emitscan emitscan45.cpp `root-config --glibs`
+
+duplicatecsv:	./../testplane-emittance.csv
+	cat ./../testplane-emittance.csv | cut -d "," -f 1-4 > ./../testplane-bpm.csv
+
 clean:	bpm45 view
 	rm ./bpm45 ./view
