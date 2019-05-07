@@ -1,7 +1,7 @@
 // A script to 
 // 1. Define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. Plot the "emittance" diagram in x-x' and y-y' planes
-// 3. Calculate the 1-sigma emittance value in terms of pi*rad*m
+// 3. Calculate the 2-sigma emittance value in terms of pi*rad*m
 
 // The code is meant for the trajectory directed in the 45-deg direction
 // The output file (testplane-emittance.csv) should be in the form of
@@ -506,7 +506,7 @@ int main (int argc, char** argv){
 //    hemit_fit->SetLineWidth(1);
 //    hemit_fit->SetLineStyle(2);
 
-    hemit->Fit("hemit_fit","0");
+    hemit->Fit("hemit_fit","EM0");
 //    hemit->Fit("hemit_fit");
 
     double xM_mean = hemit_fit->GetParameter(1);
@@ -521,8 +521,8 @@ int main (int argc, char** argv){
     double StDev_xp = hemit_fit->GetParameter(5);
     double StDev_xp_ERR = hemit_fit->GetParError(5);
 
-    double stdev_emittance_x = StDev_xM*StDev_xp;
-    double stdev_emittance_x_err = product_error(StDev_xM,StDev_xp,StDev_xM_ERR,StDev_xp_ERR);
+    double stdev_emittance_x = 4.0*StDev_xM*StDev_xp;
+    double stdev_emittance_x_err = 4.0*product_error(StDev_xM,StDev_xp,StDev_xM_ERR,StDev_xp_ERR);
 
     // Draw the horizontal 1-sigma ellipse
     TPolyLine3D *hemit_1sigma = new TPolyLine3D(ellipse_points);
@@ -549,7 +549,7 @@ int main (int argc, char** argv){
     TF2 *vemit_fit = new TF2("vemit_fit",phase_2ddist,-20.,20.,-20.,20.,6);
     vemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
 
-    vemit->Fit("vemit_fit","0");
+    vemit->Fit("vemit_fit","EM0");
 
     double yM_mean = vemit_fit->GetParameter(1);
     double yM_mean_ERR = vemit_fit->GetParError(1);
@@ -563,8 +563,8 @@ int main (int argc, char** argv){
     double StDev_yp = vemit_fit->GetParameter(5);
     double StDev_yp_ERR = vemit_fit->GetParError(5);
 
-    double stdev_emittance_y = StDev_yM*StDev_yp;
-    double stdev_emittance_y_err = product_error(StDev_yM,StDev_yp,StDev_yM_ERR,StDev_yp_ERR);
+    double stdev_emittance_y = 4.0*StDev_yM*StDev_yp;
+    double stdev_emittance_y_err = 4.0*product_error(StDev_yM,StDev_yp,StDev_yM_ERR,StDev_yp_ERR);
 
 
 
@@ -585,9 +585,9 @@ int main (int argc, char** argv){
 
     cout << endl;
     cout << "===================================================================" << endl;
-    cout << "1-sigma Emittance-X = (" << stdev_emittance_x << " +- " << stdev_emittance_x_err << ") [pi mm mrad]" << endl;
+    cout << "2-sigma Emittance-X = (" << stdev_emittance_x << " +- " << stdev_emittance_x_err << ") [pi mm mrad]" << endl;
     cout << "===================================================================" << endl;
-    cout << "1-sigma Emittance-Y = (" << stdev_emittance_y << " +- " << stdev_emittance_y_err << ") [pi mm mrad]" << endl;
+    cout << "2-sigma Emittance-Y = (" << stdev_emittance_y << " +- " << stdev_emittance_y_err << ") [pi mm mrad]" << endl;
     cout << "===================================================================" << endl;
     cout << "Fitted Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
     cout << "Fitted Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;

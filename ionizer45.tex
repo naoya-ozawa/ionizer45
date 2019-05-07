@@ -351,13 +351,13 @@ The values of $\tan^{-1}{x'} = \tan^{-1}{\frac{v_x}{v_z}}$ and $\tan^{-1}{y'} = 
 
 
 \subsection{Calculating the emittance}
-Based on the obtained histogram, there are multiple methods of calculating the emittance. A straightforward way is to use a StDev-emittance $\epsilon_{\sigma_{x_M,x'/\ y_M,y'}}$. This is defined as the area of the 1$\sigma$ interval of the histogram, obtained by fitting it with a 2D Gaussian. For a perfectly axis-aligned origin-centered ellipse, the $x_M$-$x'$ distribution could be fitted by the function
+Based on the obtained histogram, there are multiple methods of calculating the emittance. A straightforward way is to use a StDev-emittance $\epsilon_{2\sigma_{x_M,x'/\ y_M,y'}}$. This is defined as the area of the 2$\sigma$ interval of the histogram, obtained by fitting it with a 2D Gaussian. For a perfectly axis-aligned origin-centered ellipse, the $x_M$-$x'$ distribution could be fitted by the function
 \begin{eqnarray*}
 f(x_M,\ x') & = & A_x \exp{\left[ -\left\{ \frac{{x_M}^2}{2{\sigma_{x_M}}^2} + \frac{{x'}^2}{2{\sigma_{x'}}^2} \right\}\right]}.
 \end{eqnarray*}
-From this fit, the 1$\sigma$ interval becomes the area bounded by the ellipse 
+From this fit, the 2$\sigma$ interval becomes the area bounded by the ellipse 
 \begin{equation*}
-\frac{{x_M}^2}{{\sigma_{x_M}}^2} + \frac{{x'}^2}{{\sigma_{x'}}^2} = 1.
+\frac{{x_M}^2}{{\sigma_{x_M}}^2} + \frac{{x'}^2}{{\sigma_{x'}}^2} = 4.
 \end{equation*}
 In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,\ {x'}_0\right)$ and rotated counterclockwise at an angle $\varphi$. This transformation can be formulated by
 \begin{eqnarray*}
@@ -377,9 +377,9 @@ In the actual data, however, the ellipse is shifted to the point $\left({x_M}_0,
 \end{eqnarray*}
 which transfers the ellipse into
 \begin{eqnarray*}
-& & 1 = \frac{\left(x_M-{x_M}_0\right)^2}{{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{{\sigma_{x'}}^2} \\
-& \rightarrow & 1 = \frac{\left\{ \left(x_M-{x_M}_0\right)\cos{\varphi} - \left(x'-{x'}_0\right)\sin{\varphi} \right\}^2}{{\sigma_{x_M}}^2} + \frac{\left\{ \left(x_M-{x_M}_0\right)\sin{\varphi} + \left(x'-{x'}_0\right)\cos{\varphi} \right\}^2}{{\sigma_{x'}}^2} \\
-& & 1 = \left( \frac{\cos^2{\varphi}}{{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \\
+& & 4 = \frac{\left(x_M-{x_M}_0\right)^2}{{\sigma_{x_M}}^2} + \frac{\left(x'-{x'}_0\right)^2}{{\sigma_{x'}}^2} \\
+& \rightarrow & 4 = \frac{\left\{ \left(x_M-{x_M}_0\right)\cos{\varphi} - \left(x'-{x'}_0\right)\sin{\varphi} \right\}^2}{{\sigma_{x_M}}^2} + \frac{\left\{ \left(x_M-{x_M}_0\right)\sin{\varphi} + \left(x'-{x'}_0\right)\cos{\varphi} \right\}^2}{{\sigma_{x'}}^2} \\
+& & 4 = \left( \frac{\cos^2{\varphi}}{{\sigma_{x_M}}^2} + \frac{\sin^2{\varphi}}{{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right)^2 \\
 & & \, \, \, \, \, \, + 2 \left( -\frac{\sin{2\varphi}}{2{\sigma_{x_M}}^2} + \frac{\sin{2\varphi}}{2{\sigma_{x'}}^2} \right) \left( x_M-{x_M}_0 \right) \left( x'-{x'}_0 \right) \\
 & & \, \, \, \, \, \, \, \, \, \, \, \, + \left( \frac{\sin^2{\varphi}}{{\sigma_{x_M}}^2} + \frac{\cos^2{\varphi}}{{\sigma_{x'}}^2} \right) \left( x'-{x'}_0 \right)^2 .
 \end{eqnarray*}
@@ -391,8 +391,8 @@ The parametric form can be obtained similarly by
 	x' (\alpha)
 \end{array} \right) & = & \left(
 \begin{array}{c}
-	\sigma_{x_M} \cos{\alpha} \\
-	\sigma_{x'} \sin{\alpha}
+	2\sigma_{x_M} \cos{\alpha} \\
+	2\sigma_{x'} \sin{\alpha}
 \end{array} \right) \\
 & \rightarrow & \left(
 \begin{array}{cc}
@@ -400,8 +400,8 @@ The parametric form can be obtained similarly by
 	\sin{\varphi} & \cos{\varphi}
 \end{array} \right) \left(
 \begin{array}{c}
-	\sigma_{x_M} \cos{\alpha} \\
-	\sigma_{x'} \sin{\alpha}
+	2\sigma_{x_M} \cos{\alpha} \\
+	2\sigma_{x'} \sin{\alpha}
 \end{array} \right) + \left(
 \begin{array}{c}
 	{x_M}_0 \\
@@ -416,7 +416,7 @@ f\left(x_M,\ x',\ {x_M}_0,\ {x'}_0,\ \varphi\right) & = & A_x \exp \left[ -\left
 \end{eqnarray*}
 the StDev-emittance can be calculated by
 \begin{eqnarray*}
-\epsilon_{\sigma_{x_M,x'}} & = & \sigma_{x_M} \sigma_{x'} \pm \sqrt{\left( \sigma_{x_M} \Delta \sigma_{x'} \right)^2 + \left( \Delta \sigma_{x_M} \sigma_{x'}  \right)^2 }
+\epsilon_{2\sigma_{x_M,x'}} & = & 4\sigma_{x_M} \sigma_{x'} \pm 4\sqrt{\left( \sigma_{x_M} \Delta \sigma_{x'} \right)^2 + \left( \Delta \sigma_{x_M} \sigma_{x'}  \right)^2 }
 \end{eqnarray*}
 in units of [$\pi$ m rad]. Here, $\Delta \sigma_{x_M}$ and $\Delta \sigma_{x'}$ each stands for its fit error. The other parameters: ${x_M}_0$ corresponds to the beam horizontal center point, and ${x'}_0$ corresponds to the degree of divergence of the beam. For an ideal laminar beam in the 45-degree direction, ${x_M}_0 = 0$ and ${x'}_0 = 0$ should be obtained, along with $\varphi = 0$ and $\sigma_{x'} = 0$. The same procedure could be followed for the vertical, or $\left(y_M,\ y'\right)$ direction.
 
@@ -425,8 +425,16 @@ in units of [$\pi$ m rad]. Here, $\Delta \sigma_{x_M}$ and $\Delta \sigma_{x'}$ 
 
 
 \section{emitscan45.cpp}
-By scanning the distance $w$ and repeating the procedure of emittance45.cpp, the change of emittance along the beam trajectory could be observed. Since the calculation is based on the 2D Gaussian fit of the emittance diagram, one must be careful for failed fits, producing unrealistically large values of emittance.
+By scanning the distance $w$ and repeating the procedure of emittance45.cpp, the change of emittance along the beam trajectory could be observed. Since the calculation is based on the 2D Gaussian fit of the emittance diagram, one must be careful for failed fits, producing unrealistically large values of emittance. In the code, the fit results yielding $\epsilon_{\sigma}$ over a certain number are ignored. 
 
+\subsection{Normalized Emittance}
+By definition, the StDev emittance becomes smaller as the beam velocity is increased, since $x'$ and $y'$ are scaled by $v_z$. In order to neglect this effect, the "normalized" emittance
+\begin{eqnarray*}
+\epsilon_n & = & \epsilon_{2\sigma} \beta \gamma \\
+\beta & = & \frac{\sqrt{{v_x}^2 + {v_y}^2 + {v_z}^2}}{c} \\
+\gamma & = & \frac{1}{\sqrt{1-\beta^2}}
+\end{eqnarray*}
+could be used instead. In the code, the values for this $\epsilon_n$ are also calculated.
 
 
 
