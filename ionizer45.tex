@@ -431,10 +431,12 @@ By scanning the distance $w$ and repeating the procedure of emittance45.cpp, the
 By definition, the StDev emittance becomes smaller as the beam velocity is increased, since $x'$ and $y'$ are scaled by $v_z$. In order to neglect this effect, the "normalized" emittance
 \begin{eqnarray*}
 \epsilon_n & = & \epsilon_{2\sigma} \beta \gamma \\
-\beta & = & \frac{\sqrt{{v_x}^2 + {v_y}^2 + {v_z}^2}}{c} \\
+\beta & = & \frac{\sqrt{\bar{v_x}^2 + \bar{v_y}^2 + \bar{v_z}^2}}{c} \\
 \gamma & = & \frac{1}{\sqrt{1-\beta^2}}
 \end{eqnarray*}
-could be used instead. In the code, the values for this $\epsilon_n$ are also calculated.
+could be used instead. In the code, the values for this $\epsilon_n$ are also calculated. It should be noted that $\bar{v_x}$, $\bar{v_y}$, and $\bar{v_z}$ stand for the "average" velocity components at the MCP, calculated simply by the arithmetic sums of $v_x$, $v_y$, and $v_z$ respectively over all ions. \\
+For the region $w \ll 50$ mm, the beam is bended from the upwards direction to the 45-degree direction as it is accelerated. This results in an increase in $v_z$ along with a decrease in $v_y$. At the same time, since $P(w)$ is always tilted in the 45-degree angle, it cannot calculate the beam "position" correctly. From these effects, the emittance values obtained at small distances $w$ should be treated with care.
+
 
 
 
