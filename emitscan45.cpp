@@ -1,7 +1,7 @@
 // A script to 
 // 1. Define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. Plot the "emittance" diagram in x-x' and y-y' planes
-// 3. Calculate the 2-sigma emittance value in terms of pi*rad*m
+// 3. Calculate the 2-sigma emittance and normalized emittance values in terms of pi*mrad*mm
 // 4. Scan the value of w to check the change of emittance over distance
 
 // The code is meant for the trajectory directed in the 45-deg direction
@@ -154,7 +154,7 @@ double beta_gamma (double vx, double vy, double vz){
 
 int main (int argc, char** argv){
 
-    double w_start = 5.0;
+    double w_start = 0.0;
     double w_step = 10.0; // mm
 
     // Check input number here (w must be an input parameter)
