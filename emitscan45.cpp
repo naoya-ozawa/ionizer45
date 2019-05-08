@@ -155,7 +155,7 @@ double beta_gamma (double vx, double vy, double vz){
 int main (int argc, char** argv){
 
     double w_start = 0.0;
-    double w_step = 10.0; // mm
+    double w_step = 1.0; // mm
 
     // Check input number here (w must be an input parameter)
     if (argc != 2){
@@ -178,7 +178,7 @@ int main (int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posY | posZ | velX | velY | velZ |
-    const char* zx_file = "./testplane-emittance.csv";
+    const char* zx_file = "./../testplane-emittance.csv";
     string line;
 
     // Data will be stored to a ROOT file as a TTree with step # given
@@ -357,19 +357,19 @@ int main (int argc, char** argv){
     TMultiGraph *emittance_scan = new TMultiGraph();
     emittance_scan->SetTitle("Beam Emittance; Distance w (mm); Emittance (#pi mm mrad)");
     TGraphErrors *hemit_graph = new TGraphErrors();
-    hemit_graph->SetTitle("Horizontal #epsilon_{2#sigma}");
+    hemit_graph->SetTitle("Horizontal #epsilon_{2#sigma,X}");
     hemit_graph->SetLineColor(kBlue);
     hemit_graph->SetLineWidth(2);
     TGraphErrors *vemit_graph = new TGraphErrors();
-    vemit_graph->SetTitle("Vertical #epsilon_{2#sigma}");
+    vemit_graph->SetTitle("Vertical #epsilon_{2#sigma,Y}");
     vemit_graph->SetLineColor(kRed);
     vemit_graph->SetLineWidth(2);
     TGraphErrors *hnorm_graph = new TGraphErrors();
-    hnorm_graph->SetTitle("Horizontal #epsilon_{n}");
+    hnorm_graph->SetTitle("Horizontal #epsilon_{n,X}");
     hnorm_graph->SetLineColor(kCyan);
     hnorm_graph->SetLineWidth(2);
     TGraphErrors *vnorm_graph = new TGraphErrors();
-    vnorm_graph->SetTitle("Vertical #epsilon_{n}");
+    vnorm_graph->SetTitle("Vertical #epsilon_{n,Y}");
     vnorm_graph->SetLineColor(kMagenta);
     vnorm_graph->SetLineWidth(2);
 
@@ -417,6 +417,7 @@ int main (int argc, char** argv){
         double vx = 0.0;
         double vy = 0.0;
         double vz = 0.0;
+        int bpm_hits = 0;
 
         for (int i = 0; i < Nions; ++i){
 
@@ -495,8 +496,9 @@ int main (int argc, char** argv){
                     mcp->Fill( bpmx , bpmy );
                     mcp_cpx += bpmx;
                     mcp_cpy += bpmy;
-                    ++mcp_hits;
+                    ++mcp_hits; // for the final result
                 }
+                ++bpm_hits; // for each w
                 double velbpmx = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"x");
                 double velbpmy = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"y");
                 double velbpmz = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"z");
@@ -510,10 +512,10 @@ int main (int argc, char** argv){
             }
         }
 
-        // Calculate the "average velocity of the beam"
-        vx /= mcp_hits;
-        vy /= mcp_hits;
-        vz /= mcp_hits;
+        // Calculate the "average velocity of the beam" at each w
+        vx /= bpm_hits;
+        vy /= bpm_hits;
+        vz /= bpm_hits;
 
         // Find the beam center and calculate the RMS for MCP display
         if (k == N_wstep-1){
@@ -562,6 +564,8 @@ int main (int argc, char** argv){
 
         if (stdev_emittance_x > 100.){
             cout << "Horizontal 2D Gaussian Fit Failed at w = " << w << " mm!" << endl;
+        }else if (stdev_emittance_x < 0.){
+            cout << "Horizontal 2D Gaussian Fit Failed at w = " << w << " mm!" << endl;
         }else{
             hemit_graph->SetPoint(hpt,w,stdev_emittance_x);
             hemit_graph->SetPointError(hpt,0.,stdev_emittance_x_err);
@@ -598,17 +602,15 @@ int main (int argc, char** argv){
 
         if (stdev_emittance_y > 100.){
             cout << "Vertical 2D Gaussian Fit Failed at w = " << w << " mm!" << endl;
+        }else if ( stdev_emittance_y < 0.){
+            cout << "Vertical 2D Gaussian Fit Failed at w = " << w << " mm!" << endl;
         }else{
-            vemit_graph->SetPoint(k,w,stdev_emittance_y);
-            vemit_graph->SetPointError(k,0.,stdev_emittance_y_err);
-            vnorm_graph->SetPoint(k,w,norm_emittance_y);
-            vnorm_graph->SetPointError(k,0.,norm_emittance_y_err);
+            vemit_graph->SetPoint(vpt,w,stdev_emittance_y);
+            vemit_graph->SetPointError(vpt,0.,stdev_emittance_y_err);
+            vnorm_graph->SetPoint(vpt,w,norm_emittance_y);
+            vnorm_graph->SetPointError(vpt,0.,norm_emittance_y_err);
             ++vpt;
         }
-
-//        printf("w = %g mm\r",w);
-        cout << "Analyzed w = " << w << " mm" << endl;
-        w += w_step;
 
         if (k == N_wstep-1){
             cout << endl;
@@ -626,17 +628,20 @@ int main (int argc, char** argv){
             TLatex l_emt;
             l_emt.SetTextAlign(12);
             l_emt.SetTextSize(0.05);
-            l_emt.DrawLatex(0.15,0.9,Form("Testplane at w = %g [mm]:",w));
-            l_emt.DrawLatex(0.15,0.8,Form("Horizontal #epsilon_{2#sigma} = %g #pm %g [#pi mm mrad]",stdev_emittance_x,stdev_emittance_x_err));
-            l_emt.DrawLatex(0.15,0.7,Form("Vertical #epsilon_{2#sigma} = %g #pm %g [#pi mm mrad]",stdev_emittance_y,stdev_emittance_y_err));
-            l_emt.DrawLatex(0.15,0.6,Form("Horizontal #epsilon_{n} = %g #pm %g [#pi mm mrad]",norm_emittance_x,norm_emittance_x_err));
-            l_emt.DrawLatex(0.15,0.5,Form("Vertical #epsilon_{n} = %g #pm %g [#pi mm mrad]",norm_emittance_y,norm_emittance_y_err));
-            l_emt.DrawLatex(0.15,0.4,"Emittance definitions:");
-            l_emt.DrawLatex(0.25,0.3,"#epsilon_{2#sigma} = 4#times#sigma_{x/y}#sigma_{x'/y'}");
-            l_emt.DrawLatex(0.25,0.2,"#epsilon_{n} = #beta#gamma#epsilon_{2#sigma}");
-            l_emt.DrawLatex(0.25,0.1,"#sigma obtained from 2D Gaussian fit of the emittance diagram");
-       }
+            l_emt.DrawLatex(0.05,0.9,Form("Testplane at w = %g [mm]:",w));
+            l_emt.DrawLatex(0.00,0.8,Form("#epsilon_{2#sigma,X} = %g #pm %g [#pi mm mrad]",stdev_emittance_x,stdev_emittance_x_err));
+            l_emt.DrawLatex(0.00,0.7,Form("#epsilon_{2#sigma,Y} = %g #pm %g [#pi mm mrad]",stdev_emittance_y,stdev_emittance_y_err));
+            l_emt.DrawLatex(0.00,0.6,Form("#epsilon_{n,X} = %g #pm %g [#pi mm mrad]",norm_emittance_x,norm_emittance_x_err));
+            l_emt.DrawLatex(0.00,0.5,Form("#epsilon_{n,Y} = %g #pm %g [#pi mm mrad]",norm_emittance_y,norm_emittance_y_err));
+            l_emt.DrawLatex(0.05,0.4,"Emittance definitions:");
+            l_emt.DrawLatex(0.10,0.3,"#epsilon_{2#sigma,X/Y} = 4#times#sigma_{x/y}#sigma_{x'/y'}");
+            l_emt.DrawLatex(0.10,0.2,"#epsilon_{n,X/Y} = #beta#gamma#epsilon_{2#sigma,X/Y}");
+            l_emt.DrawLatex(0.00,0.1,"#sigma_{x/y} obtained by fitting emittance diagram");
+        }
 
+//    printf("w = %g mm\r",w);
+        cout << "Analyzed w = " << w << " mm" << endl;
+        w += w_step;
     }
 
 
@@ -648,6 +653,7 @@ int main (int argc, char** argv){
     emittance_scan->Add(vnorm_graph);
     emittance_scan->Draw("ALP");
     c1->cd(3)->BuildLegend();
+    c1->cd(3)->SetLogy();
 
 
 
