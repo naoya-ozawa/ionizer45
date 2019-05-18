@@ -364,8 +364,8 @@ int main (int argc, char** argv){
         l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
         l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",mcp_cpx));
         l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",mcp_cpy));
-        l_mcp.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",mcp_rmsx));
-        l_mcp.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",mcp_rmsy));
+        l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",mcp_rmsx));
+        l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",mcp_rmsy));
         l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
         c1->Update();
