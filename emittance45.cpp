@@ -156,12 +156,12 @@ int main (int argc, char** argv){
     TRint rootapp("app",&argc,argv);
 
     TCanvas *c1 = new TCanvas();
-    c1->Divide(3,2);
+    c1->Divide(4,2);
 
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posY | posZ | velX | velY | velZ |
-    const char* zx_file = "./testplane-emittance.csv";
+    const char* zx_file = "./../testplane-emittance.csv";
     string line;
 
     // Data will be stored to a ROOT file as a TTree with step # given
@@ -296,7 +296,7 @@ int main (int argc, char** argv){
 
 
 
-    c1->cd(4);
+    c1->cd(5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->GetEntry(src_elist->GetEntry(i));
         double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
@@ -365,8 +365,8 @@ int main (int argc, char** argv){
     double mcp_rmsy = 0.0;
     int mcp_hits = 0;
 
-    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X (mm);arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
-    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y (mm);arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X (mm);X_{T} = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y (mm);Y_{T} = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
 
     for (int i = 0; i < Nions; ++i){
 
@@ -477,7 +477,7 @@ int main (int argc, char** argv){
     mcp->Draw("colz");
 
 
-    c1->cd(5);
+    c1->cd(6);
    
     TLatex l_mcp;
     l_mcp.SetTextAlign(12);
@@ -485,8 +485,8 @@ int main (int argc, char** argv){
     l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
     l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",mcp_cpx));
     l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",mcp_cpy));
-    l_mcp.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",mcp_rmsx));
-    l_mcp.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",mcp_rmsy));
+    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",mcp_rmsx));
+    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",mcp_rmsy));
     l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
 
@@ -542,7 +542,7 @@ int main (int argc, char** argv){
 
 
 
-    c1->cd(6);
+    c1->cd(4);
     vemit->Draw("COLZ");
 
 
@@ -550,6 +550,7 @@ int main (int argc, char** argv){
     vemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
 
     vemit->Fit("vemit_fit","EM0");
+//    vemit->Fit("vemit_fit");
 
     double yM_mean = vemit_fit->GetParameter(1);
     double yM_mean_ERR = vemit_fit->GetParError(1);
@@ -592,6 +593,39 @@ int main (int argc, char** argv){
     cout << "Fitted Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
     cout << "Fitted Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;
     cout << "(dx'/dxM, dy'/dyM) = (" << TMath::Tan(phi_X) << " mrad/mm, " << TMath::Tan(phi_Y) << " mrad/mm)" << endl;
+
+
+    c1->cd(7);
+
+    TLatex l_emitx;
+    l_emitx.SetTextAlign(12);
+    l_emitx.SetTextSize(0.05);
+    l_emitx.DrawLatex(0.05,0.9,"Horizontal #epsilon_{2#sigma}:");
+    l_emitx.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_x
+,stdev_emittance_x_err));
+    l_emitx.DrawLatex(0.05,0.7,"Fit results:");
+    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g#pm%g [mm]",xM_mean,xM_mea
+n_ERR));
+    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g#pm%g [mm/mm]",TMath::Tan(xp_
+mean),xp_mean_ERR)); // Tan(x) ~=~ x when x is small
+    l_emitx.DrawLatex(0.03,0.4,Form("dx_{T}/dx_{M} = %g#pm%g [mrad/mm]",TMath
+::Tan(phi_X),phi_X_ERR));
+
+    c1->cd(8);
+
+    TLatex l_emity;
+    l_emity.SetTextAlign(12);
+    l_emity.SetTextSize(0.05);
+    l_emity.DrawLatex(0.05,0.9,"Vertical #epsilon_{2#sigma}:");
+    l_emity.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_y
+,stdev_emittance_y_err));
+    l_emity.DrawLatex(0.05,0.7,"Fit results:");
+    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g#pm%g [mm]",yM_mean,yM_mea
+n_ERR));
+    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g#pm%g [mm/mm]",TMath::Tan(yp_
+mean),yp_mean_ERR)); // Tan(y) ~=~ y when y is small
+    l_emity.DrawLatex(0.03,0.4,Form("dy_{T}/dy_{M} = %g#pm%g [mrad/mm]",TMath
+::Tan(phi_Y),phi_Y_ERR));
 
 
     c1->Update();
