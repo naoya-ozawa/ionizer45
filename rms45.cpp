@@ -412,9 +412,9 @@ int main (int argc, char** argv){
     l_rms.SetTextSize(0.05);
     l_rms.DrawLatex(0.15,0.9,"45-Deg Beam StDev");
     l_rms.DrawLatex(0.15,0.8,Form("Horizontal focal point at w = %g mm",w_horizontal));
-    l_rms.DrawLatex(0.15,0.7,Form("Minimum horizontal RMSx = %g mm",rmsmin_hor));
+    l_rms.DrawLatex(0.15,0.7,Form("Minimum horizontal StDevx = %g mm",rmsmin_hor));
     l_rms.DrawLatex(0.15,0.6,Form("Vertical focal point at w = %g mm",w_vertical));
-    l_rms.DrawLatex(0.15,0.5,Form("Minimum vertical RMSy = %g mm",rmsmin_ver));
+    l_rms.DrawLatex(0.15,0.5,Form("Minimum vertical StDevy = %g mm",rmsmin_ver));
 
     cout << endl;
     cout << "================================================================" << endl;
