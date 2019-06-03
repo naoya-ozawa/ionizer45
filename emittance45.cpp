@@ -20,7 +20,7 @@
 #include <TMultiGraph.h>
 #include <TCanvas.h>
 #include <TF2.h>
-#include <TPolyLine3D.h>
+#include <TPolyLine3D.h> // <-- change this to TPolyLine.h and don't draw with option "SAME"
 #include <TH2D.h>
 #include <TLatex.h>
 
