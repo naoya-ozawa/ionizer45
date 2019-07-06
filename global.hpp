@@ -8,6 +8,6 @@
  
 // グローバル定数宣言と初期化
 const double h = 29.0; 
-const char *filepath = "./../";
-//const char *filepath = "./"; // for local test
+//const char *filepath = "./../";
+const char *filepath = "./"; // for local test
 
