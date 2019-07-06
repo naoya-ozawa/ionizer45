@@ -125,7 +125,7 @@ int main (int argc, char** argv){
         int pix = 65;
 
         // Target lowered from the center
-        double h = 30.0; // mm
+        double h = 29.0; // mm
 
         // Convert CSV to ROOT
         ifstream simion_output( zx_file );
@@ -306,7 +306,7 @@ int main (int argc, char** argv){
                     trjpty[i] = t_trj(w,x_0,x_d,z_0,z_d)*y_d + y_0;
                     trjptz[i] = t_trj(w,x_0,x_d,z_0,z_d)*z_d + z_0;
                     ++mcp_hits;
-                    cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
+//                    cout << "Ion #" << i+1 << " passed P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
                     // connect the two steps with a line and find the intercept with P(w)
                     // use the intercept for RMS and CP calculation
                     break;
@@ -315,7 +315,7 @@ int main (int argc, char** argv){
                     trjpty[i] = y_d + y_0;
                     trjptz[i] = z_d + z_0;
                     ++mcp_hits;
-                    cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
+//                    cout << "Ion #" << i+1 << " hit P(w) at (" << trjptx[i] << ", " << trjpty[i] << ", " << trjptz[i] << ")_(inventor)" << endl;
                     break;
                 }else{
                     // Store the position for the "back"/previous point vec{P_b}
