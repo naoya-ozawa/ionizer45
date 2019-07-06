@@ -20,7 +20,7 @@
 #include <TMultiGraph.h>
 #include <TCanvas.h>
 #include <TF2.h>
-#include <TPolyLine3D.h> // <-- change this to TPolyLine.h and don't draw with option "SAME"
+#include <TPolyLine.h> // <-- change this to TPolyLine.h and don't draw with option "SAME"
 #include <TH2D.h>
 #include <TLatex.h>
 
@@ -524,19 +524,19 @@ int main (int argc, char** argv){
     double stdev_emittance_x = 4.0*StDev_xM*StDev_xp;
     double stdev_emittance_x_err = 4.0*product_error(StDev_xM,StDev_xp,StDev_xM_ERR,StDev_xp_ERR);
 
-    // Draw the horizontal 1-sigma ellipse
-    TPolyLine3D *hemit_1sigma = new TPolyLine3D(ellipse_points);
+    // Draw the horizontal 2-sigma ellipse
+    TPolyLine *hemit_2sigma = new TPolyLine(ellipse_points);
     for (int k = 0; k < ellipse_points; ++k){
         double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
         double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
-        double X = TMath::Cos(phi_X)*StDev_xM*cosfactor - TMath::Sin(phi_X)*StDev_xp*sinfactor + xM_mean;
-        double Y = TMath::Sin(phi_X)*StDev_xM*cosfactor + TMath::Cos(phi_X)*StDev_xp*sinfactor + xp_mean;
+        double X = TMath::Cos(phi_X)*2.0*StDev_xM*cosfactor - TMath::Sin(phi_X)*2.0*StDev_xp*sinfactor + xM_mean;
+        double Y = TMath::Sin(phi_X)*2.0*StDev_xM*cosfactor + TMath::Cos(phi_X)*2.0*StDev_xp*sinfactor + xp_mean;
 
-        hemit_1sigma->SetPoint(k,X,Y,10.);
+        hemit_2sigma->SetPoint(k,X,Y);
     }
-    hemit_1sigma->SetLineWidth(3);
-    hemit_1sigma->SetLineColor(2);
-    hemit_1sigma->Draw("SAME");
+    hemit_2sigma->SetLineWidth(3);
+    hemit_2sigma->SetLineColor(2);
+    hemit_2sigma->Draw();
 
 
 
@@ -569,19 +569,19 @@ int main (int argc, char** argv){
 
 
 
-    // Draw the vertical 1-sigma ellipse
-    TPolyLine3D *vemit_1sigma = new TPolyLine3D(ellipse_points);
+    // Draw the vertical 2-sigma ellipse
+    TPolyLine *vemit_2sigma = new TPolyLine(ellipse_points);
     for (int k = 0; k < ellipse_points; ++k){
         double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
         double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
-        double X = TMath::Cos(phi_Y)*StDev_yM*cosfactor - TMath::Sin(phi_Y)*StDev_yp*sinfactor + yM_mean;
-        double Y = TMath::Sin(phi_Y)*StDev_yM*cosfactor + TMath::Cos(phi_Y)*StDev_yp*sinfactor + yp_mean;
+        double X = TMath::Cos(phi_Y)*2.0*StDev_yM*cosfactor - TMath::Sin(phi_Y)*2.0*StDev_yp*sinfactor + yM_mean;
+        double Y = TMath::Sin(phi_Y)*2.0*StDev_yM*cosfactor + TMath::Cos(phi_Y)*2.0*StDev_yp*sinfactor + yp_mean;
 
-        vemit_1sigma->SetPoint(k,X,Y,10.);
+        vemit_2sigma->SetPoint(k,X,Y);
     }
-    vemit_1sigma->SetLineWidth(3);
-    vemit_1sigma->SetLineColor(2);
-    vemit_1sigma->Draw("SAME");
+    vemit_2sigma->SetLineWidth(3);
+    vemit_2sigma->SetLineColor(2);
+    vemit_2sigma->Draw();
 
 
     cout << endl;
