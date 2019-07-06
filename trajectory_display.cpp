@@ -28,12 +28,10 @@ int main(int argc, char** argv){
     // | ion# | posX | posy | posZ |
     const char* zx_file = "./../testplane-bpm.csv";
     string line;
-    int ion_number;
+    int ion_number = -9999;
 
-    // Specify the origin so that the trajectory is displayed in Inventor coordinates
-    double sx = 200.0;
-    double sy = 210.0;
-    double sz = 213.85;
+    // The target surface is h mm lower than the XY-plane
+    double h = 29.0;
 
     // Create graphs to draw
     TGraphErrors *traj_zx = new TGraphErrors();
@@ -51,6 +49,54 @@ int main(int argc, char** argv){
         simion_output.ignore(100,'\n');
 
         int k = 0; // line counter
+
+        // Search for the origin so that the trajectory is displayed in Inventor coordinates
+        double sx = -9999.;
+        double sy = -9999.;
+        double sz = -9999.;
+
+        // Search for the origin in SIMION coordinates
+
+        while ( getline(simion_output,line) ){ // read loop over the entire CSV file
+            istringstream linestream(line);
+            string item;
+            while ( getline(linestream,item,',') ){ // read loop for each line
+                ++k;
+                try{
+                    int tester = stoi(item);
+                    int step_number = -9999;
+                    double X_position, Y_position, Z_position;
+                    if (k%4 == 1){
+                        if ( stod(item) != ion_number ){
+                            step_number = 1;
+                        }else{
+                            ++step_number;
+                        }
+                        ion_number = stod(item);
+//                        cout << "Reading line " << k << endl;
+                    }else if (k%4 == 2){
+                        X_position = stod(item);
+                        if (step_number == 1) sx += X_position;
+                    }else if (k%4 == 3){
+                        Y_position = stod(item);
+                        if (step_number == 1) sy += Y_position;
+                    }else{
+                        Z_position = stod(item);
+                        if (step_number == 1) sz += Z_position + h;
+//                        cout << "Ion #" << ion_number << " is at (" << X_position-sx << ", " << Y_position-sy << ", " << Z_position-sz << ")_(Inventor)" << endl;
+                    }
+                }
+                catch (const invalid_argument& e){
+                    k = 0;
+                    sx /= ion_number;
+                    sy /= ion_number;
+                    sz /= ion_number;
+                    cout << "Ion source at (" << sx << ", " << sy << ", " << sz << ")_(SIMION) mm" << endl;
+                }
+            }   
+        }
+
+
 
         while ( getline(simion_output,line) ){ // read loop over the entire CSV file
             istringstream linestream(line);
