@@ -20,11 +20,13 @@
 #include <TMultiGraph.h>
 #include <TCanvas.h>
 #include <TF2.h>
-#include <TPolyLine.h> // <-- change this to TPolyLine.h and don't draw with option "SAME"
+#include <TPolyLine.h>
 #include <TH2D.h>
 #include <TLatex.h>
 
 #include <TRint.h>
+
+#include "global.hpp"
 
 using namespace std;
 
@@ -161,7 +163,10 @@ int main (int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posY | posZ | velX | velY | velZ |
-    const char* zx_file = "./../testplane-emittance.csv";
+    string usepath = filepath;
+    string usefile = "testplane-emittance.csv";
+    string datafile = usepath+usefile;
+    const char* zx_file = datafile.c_str();
     string line;
 
     // Data will be stored to a ROOT file as a TTree with step # given
@@ -191,10 +196,6 @@ int main (int argc, char** argv){
 
     // Emittance diagram resolution
     int diagram = 65;
-
-    // Target lowered from the center
-    double h = 29.0; // mm
-
 
     // Convert CSV to ROOT
     ifstream simion_output( zx_file );
@@ -601,15 +602,11 @@ int main (int argc, char** argv){
     l_emitx.SetTextAlign(12);
     l_emitx.SetTextSize(0.05);
     l_emitx.DrawLatex(0.05,0.9,"Horizontal #epsilon_{2#sigma}:");
-    l_emitx.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_x
-,stdev_emittance_x_err));
+    l_emitx.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_x,stdev_emittance_x_err));
     l_emitx.DrawLatex(0.05,0.7,"Fit results:");
-    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g#pm%g [mm]",xM_mean,xM_mea
-n_ERR));
-    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g#pm%g [mm/mm]",TMath::Tan(xp_
-mean),xp_mean_ERR)); // Tan(x) ~=~ x when x is small
-    l_emitx.DrawLatex(0.03,0.4,Form("dx_{T}/dx_{M} = %g#pm%g [mrad/mm]",TMath
-::Tan(phi_X),phi_X_ERR));
+    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g#pm%g [mm]",xM_mean,xM_mean_ERR));
+    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g#pm%g [mm/mm]",TMath::Tan(xp_mean),xp_mean_ERR)); // Tan(x) ~=~ x when x is small
+    l_emitx.DrawLatex(0.03,0.4,Form("dx_{T}/dx_{M} = %g#pm%g [mrad/mm]",TMath::Tan(phi_X),phi_X_ERR));
 
     c1->cd(8);
 
@@ -617,15 +614,11 @@ mean),xp_mean_ERR)); // Tan(x) ~=~ x when x is small
     l_emity.SetTextAlign(12);
     l_emity.SetTextSize(0.05);
     l_emity.DrawLatex(0.05,0.9,"Vertical #epsilon_{2#sigma}:");
-    l_emity.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_y
-,stdev_emittance_y_err));
+    l_emity.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_y,stdev_emittance_y_err));
     l_emity.DrawLatex(0.05,0.7,"Fit results:");
-    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g#pm%g [mm]",yM_mean,yM_mea
-n_ERR));
-    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g#pm%g [mm/mm]",TMath::Tan(yp_
-mean),yp_mean_ERR)); // Tan(y) ~=~ y when y is small
-    l_emity.DrawLatex(0.03,0.4,Form("dy_{T}/dy_{M} = %g#pm%g [mrad/mm]",TMath
-::Tan(phi_Y),phi_Y_ERR));
+    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g#pm%g [mm]",yM_mean,yM_mean_ERR));
+    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g#pm%g [mm/mm]",TMath::Tan(yp_mean),yp_mean_ERR)); // Tan(y) ~=~ y when y is small
+    l_emity.DrawLatex(0.03,0.4,Form("dy_{T}/dy_{M} = %g#pm%g [mrad/mm]",TMath::Tan(phi_Y),phi_Y_ERR));
 
 
     c1->Update();

@@ -1,3 +1,8 @@
+## SET FILEPATHS HERE ##
+#CSVPATH = ./../ ## FOR LOCAL TESTING
+CSVPATH	= ./../
+########################
+
 all:	rms45.cpp
 	`root-config --cxx --cflags` -o rms45 rms45.cpp `root-config --glibs`
 
@@ -13,8 +18,8 @@ emittance:	emittance45.cpp
 emitscan:	emitscan45.cpp
 	`root-config --cxx --cflags` -o emitscan emitscan45.cpp `root-config --glibs`
 
-duplicatecsv:	./../testplane-emittance.csv
-	cat ./../testplane-emittance.csv | cut -d "," -f 1-4 > ./../testplane-bpm.csv
+duplicatecsv:	$(CSVPATH)testplane-emittance.csv
+	cat $(CSVPATH)testplane-emittance.csv | cut -d "," -f 1-4 > $(CSVPATH)testplane-bpm.csv
 
 clean:	bpm45 view
 	rm ./bpm45 ./view

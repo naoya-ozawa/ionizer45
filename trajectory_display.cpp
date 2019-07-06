@@ -13,6 +13,8 @@
 #include <TLatex.h>
 #include <TRint.h>
 
+#include "global.hpp"
+
 using namespace std;
 
 
@@ -26,12 +28,13 @@ int main(int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posy | posZ |
-    const char* zx_file = "./../testplane-bpm.csv";
+    string usepath = filepath;
+    string usefile = "testplane-bpm.csv";
+    string datafile = usepath+usefile;
+    const char* zx_file = datafile.c_str();
     string line;
     int ion_number = -9999;
-
-    // The target surface is h mm lower than the XY-plane
-    double h = 29.0;
+    int step_number = -9999;
 
     // Create graphs to draw
     TGraphErrors *traj_zx = new TGraphErrors();
@@ -51,9 +54,9 @@ int main(int argc, char** argv){
         int k = 0; // line counter
 
         // Search for the origin so that the trajectory is displayed in Inventor coordinates
-        double sx = -9999.;
-        double sy = -9999.;
-        double sz = -9999.;
+        double sx = 0.0;
+        double sy = 0.0;
+        double sz = 0.0;
 
         // Search for the origin in SIMION coordinates
 
@@ -64,7 +67,6 @@ int main(int argc, char** argv){
                 ++k;
                 try{
                     int tester = stoi(item);
-                    int step_number = -9999;
                     double X_position, Y_position, Z_position;
                     if (k%4 == 1){
                         if ( stod(item) != ion_number ){
@@ -97,6 +99,10 @@ int main(int argc, char** argv){
         }
 
 
+
+        simion_output.clear();
+        simion_output.seekg(0,ios_base::beg);
+        simion_output.ignore(100,'\n');
 
         while ( getline(simion_output,line) ){ // read loop over the entire CSV file
             istringstream linestream(line);

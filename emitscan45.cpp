@@ -27,6 +27,8 @@
 
 #include <TRint.h>
 
+#include "global.hpp"
+
 using namespace std;
 
 double position_on_target(double x_simion, double y_simion, double xcent_simion, double ycent_simion, const char* x_or_y){
@@ -178,7 +180,10 @@ int main (int argc, char** argv){
     // SIMION output CSV file
     // in the form of
     // | ion# | posX | posY | posZ | velX | velY | velZ |
-    const char* zx_file = "./../testplane-emittance.csv";
+    string usepath = filepath;
+    string usefile = "testplane-emittance.csv";
+    string datafile = usepath+usefile;
+    const char* zx_file = datafile.c_str();
     string line;
 
     // Data will be stored to a ROOT file as a TTree with step # given
@@ -208,10 +213,6 @@ int main (int argc, char** argv){
 
     // Emittance diagram resolution
     int diagram = 65;
-
-    // Target lowered from the center
-    double h = 29.0; // mm
-
 
     // Convert CSV to ROOT
     ifstream simion_output( zx_file );

@@ -27,6 +27,8 @@
 
 #include <TRint.h>
 
+#include "global.hpp"
+
 using namespace std;
 
 double position_on_target(double x_simion, double y_simion, double xcent_simion, double ycent_simion, const char* x_or_y){
@@ -102,7 +104,13 @@ int main (int argc, char** argv){
         // SIMION output CSV file
         // in the form of
         // | ion# | posX | posY | posZ |
-        const char* zx_file = "./../testplane-bpm.csv";
+
+        string usepath = filepath;
+        string usefile = "testplane-bpm.csv";
+
+        string datafile = usepath+usefile;
+        const char* zx_file = datafile.c_str();
+
         string line;
 
         // Data will be stored to a ROOT file as a TTree with step number given to each step
@@ -124,16 +132,13 @@ int main (int argc, char** argv){
         // Beam Profile Monitoring resolution
         int pix = 65;
 
-        // Target lowered from the center
-        double h = 29.0; // mm
-
         // Convert CSV to ROOT
         ifstream simion_output( zx_file );
         if (!simion_output){
             cout << "Cannot open SIMION output!" << endl;
             exit(1);
         }else{
-            cout << "SIMION output opened." << endl;
+            cout << "SIMION output " << zx_file << " opened." << endl;
         
             simion_output.ignore(100,'\n'); // skip the header
 
