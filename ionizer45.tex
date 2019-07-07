@@ -563,9 +563,24 @@ By using these expressions, the emittance values could be redefined in terms of 
 where
 \begin{eqnarray*}
 \rho_{x_M,x'} & = & \frac{\sigma_{x_M,x'}}{\sigma_{x_M}\sigma_{x'}} \\
-\rho_{y_M,y'} & = & \frac{\sigma_{y_M,y'}}{\sigma_{y_M}\sigma_{y'}} .
+\rho_{y_M,y'} & = & \frac{\sigma_{y_M,y'}}{\sigma_{y_M}\sigma_{y'}} . \\
 \end{eqnarray*}
 
+The two methods are compared in the following figures. It can be seen that the fit does not resemble the actual distribution.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[clip,width=8.0cm,angle=-90]{./stdevemittance_files/emittance45_fitmethod.pdf}
+    \caption{Emittance plot using the 2D fit method.\label{fig:emittancefit}}
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[clip,width=8.0cm,angle=-90]{./stdevemittance_files/emittance45_statmethod.pdf}
+    \caption{Emittance plot using the direct calculation method.\label{fig:emittancestat}}
+  \end{center}
+\end{figure}
 
 
 

@@ -360,14 +360,21 @@ int main (int argc, char** argv){
     }
 
     TH2D *mcp = new TH2D("mcp","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
-    double mcp_cpx = 0.0;
-    double mcp_cpy = 0.0;
-    double mcp_rmsx = 0.0;
-    double mcp_rmsy = 0.0;
     int mcp_hits = 0;
 
-    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X (mm);X_{T} = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
-    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y (mm);Y_{T} = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y_{M} (mm);Y' = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+
+    double xM_mean = 0.0;
+    double xM_sqmn = 0.0;
+    double xp_mean = 0.0;
+    double xp_sqmn = 0.0;
+    double yM_mean = 0.0;
+    double yM_sqmn = 0.0;
+    double yp_mean = 0.0;
+    double yp_sqmn = 0.0;
+    double x_promn = 0.0;
+    double y_promn = 0.0;
 
     for (int i = 0; i < Nions; ++i){
 
@@ -448,33 +455,52 @@ int main (int argc, char** argv){
             double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
             double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
             mcp->Fill( bpmx , bpmy );
-            mcp_cpx += bpmx;
-            mcp_cpy += bpmy;
+            xM_mean += bpmx;
+            yM_mean += bpmy;
+            xM_sqmn += bpmx*bpmx;
+            yM_sqmn += bpmy*bpmy;
             double velbpmx = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"x");
             double velbpmy = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"y");
             double velbpmz = velocity_on_bpm(velocx[i],velocy[i],velocz[i],"z");
-            hemit->Fill( bpmx , TMath::ATan(velbpmx/velbpmz)*1000. );
-            vemit->Fill( bpmy , TMath::ATan(velbpmy/velbpmz)*1000. );
+            double bpmxp = TMath::ATan(velbpmx/velbpmz)*1000.;
+            double bpmyp = TMath::ATan(velbpmy/velbpmz)*1000.;
+            hemit->Fill( bpmx , bpmxp );
+            vemit->Fill( bpmy , bpmyp );
+            xp_mean += bpmxp;
+            yp_mean += bpmyp;
+            xp_sqmn += bpmxp*bpmxp;
+            yp_sqmn += bpmyp*bpmyp;
+            x_promn += bpmx*bpmxp;
+            y_promn += bpmy*bpmyp;
         }else{
             cout << "Ion #" << i+1 << " did not survive!" << endl;
         }
     }
-    // Find the beam center
-    mcp_cpx /= mcp_hits;
-    mcp_cpy /= mcp_hits;
+    // Find the beam mean/square-mean of position/direction and product-mean at P(w)
+    xM_mean /= double(mcp_hits);
+    yM_mean /= double(mcp_hits);
+    xM_sqmn /= double(mcp_hits);
+    yM_sqmn /= double(mcp_hits);
+    xp_mean /= double(mcp_hits);
+    yp_mean /= double(mcp_hits);
+    xp_sqmn /= double(mcp_hits);
+    yp_sqmn /= double(mcp_hits);
+    x_promn /= double(mcp_hits);
+    y_promn /= double(mcp_hits);
 
-    // Calculate the RMS
-    for (int i = 0; i < Nions; ++i){
-        if (trjptx[i] != -9999.0){
-            double bpmx = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"x");
-            double bpmy = position_on_bpm(trjptx[i],trjpty[i],trjptz[i],"y");
-            mcp_rmsx += (bpmx - mcp_cpx)*(bpmx - mcp_cpx);
-            mcp_rmsy += (bpmy - mcp_cpy)*(bpmy - mcp_cpy);
-        }
-    }
-    mcp_rmsx = TMath::Sqrt(mcp_rmsx/mcp_hits);
-    mcp_rmsy = TMath::Sqrt(mcp_rmsy/mcp_hits);
+    // Calculate the StDevs and covariance
+    double StDev_xM = TMath::Sqrt(xM_sqmn - xM_mean*xM_mean);
+    double StDev_xp = TMath::Sqrt(xp_sqmn - xp_mean*xp_mean);
 
+    double StDev_yM = TMath::Sqrt(yM_sqmn - yM_mean*yM_mean);
+    double StDev_yp = TMath::Sqrt(yp_sqmn - yp_mean*yp_mean);
+
+    double Covar_x = x_promn - xM_mean*xp_mean;
+    double Covar_y = y_promn - yM_mean*yp_mean;
+
+    double phi_X = TMath::ATan(0.5 * Covar_x / (StDev_xM*StDev_xM - StDev_xp*StDev_xp) );
+    double phi_Y = TMath::ATan(0.5 * Covar_y / (StDev_yM*StDev_yM - StDev_yp*StDev_yp) );
+   
     mcp->Draw("colz");
 
 
@@ -484,10 +510,10 @@ int main (int argc, char** argv){
     l_mcp.SetTextAlign(12);
     l_mcp.SetTextSize(0.05);
     l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
-    l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",mcp_cpx));
-    l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",mcp_cpy));
-    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",mcp_rmsx));
-    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",mcp_rmsy));
+    l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",xM_mean));
+    l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",yM_mean));
+    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",StDev_xM));
+    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",StDev_yM));
     l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
 
 
@@ -502,28 +528,8 @@ int main (int argc, char** argv){
     
     hemit->Draw("COLZ");
 
-    TF2 *hemit_fit = new TF2("hemit_fit",phase_2ddist,-20.,20.,-20.,20.,6);
-    hemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
-//    hemit_fit->SetLineWidth(1);
-//    hemit_fit->SetLineStyle(2);
-
-    hemit->Fit("hemit_fit","EM0");
-//    hemit->Fit("hemit_fit");
-
-    double xM_mean = hemit_fit->GetParameter(1);
-    double xM_mean_ERR = hemit_fit->GetParError(1);
-    double xp_mean = hemit_fit->GetParameter(2);
-    double xp_mean_ERR = hemit_fit->GetParError(2);
-    double phi_X = hemit_fit->GetParameter(3);
-    double phi_X_ERR = hemit_fit->GetParError(3);
-
-    double StDev_xM = hemit_fit->GetParameter(4);
-    double StDev_xM_ERR = hemit_fit->GetParError(4);
-    double StDev_xp = hemit_fit->GetParameter(5);
-    double StDev_xp_ERR = hemit_fit->GetParError(5);
-
-    double stdev_emittance_x = 4.0*StDev_xM*StDev_xp;
-    double stdev_emittance_x_err = 4.0*product_error(StDev_xM,StDev_xp,StDev_xM_ERR,StDev_xp_ERR);
+    double correlation_x = Covar_x/(StDev_xM*StDev_xp);
+    double stdev_emittance_x = 4.0*StDev_xM*StDev_xp * TMath::Sqrt(1.0 - correlation_x);
 
     // Draw the horizontal 2-sigma ellipse
     TPolyLine *hemit_2sigma = new TPolyLine(ellipse_points);
@@ -546,29 +552,8 @@ int main (int argc, char** argv){
     c1->cd(4);
     vemit->Draw("COLZ");
 
-
-    TF2 *vemit_fit = new TF2("vemit_fit",phase_2ddist,-20.,20.,-20.,20.,6);
-    vemit_fit->SetParameters(0.01*double(mcp_hits),0.0,0.0,TMath::Pi()/4.0,1.0,1.0);
-
-    vemit->Fit("vemit_fit","EM0");
-//    vemit->Fit("vemit_fit");
-
-    double yM_mean = vemit_fit->GetParameter(1);
-    double yM_mean_ERR = vemit_fit->GetParError(1);
-    double yp_mean = vemit_fit->GetParameter(2);
-    double yp_mean_ERR = vemit_fit->GetParError(2);
-    double phi_Y = vemit_fit->GetParameter(3);
-    double phi_Y_ERR = vemit_fit->GetParError(3);
-
-    double StDev_yM = vemit_fit->GetParameter(4);
-    double StDev_yM_ERR = vemit_fit->GetParError(4);
-    double StDev_yp = vemit_fit->GetParameter(5);
-    double StDev_yp_ERR = vemit_fit->GetParError(5);
-
-    double stdev_emittance_y = 4.0*StDev_yM*StDev_yp;
-    double stdev_emittance_y_err = 4.0*product_error(StDev_yM,StDev_yp,StDev_yM_ERR,StDev_yp_ERR);
-
-
+    double correlation_y = Covar_y/(StDev_yM*StDev_yp);
+    double stdev_emittance_y = 4.0*StDev_yM*StDev_yp * TMath::Sqrt(1.0 - correlation_y);
 
     // Draw the vertical 2-sigma ellipse
     TPolyLine *vemit_2sigma = new TPolyLine(ellipse_points);
@@ -587,13 +572,13 @@ int main (int argc, char** argv){
 
     cout << endl;
     cout << "===================================================================" << endl;
-    cout << "2-sigma Emittance-X = (" << stdev_emittance_x << " +- " << stdev_emittance_x_err << ") [pi mm mrad]" << endl;
+    cout << "2-sigma Emittance-X = " << stdev_emittance_x << " [pi mm mrad]" << endl;
     cout << "===================================================================" << endl;
-    cout << "2-sigma Emittance-Y = (" << stdev_emittance_y << " +- " << stdev_emittance_y_err << ") [pi mm mrad]" << endl;
+    cout << "2-sigma Emittance-Y = " << stdev_emittance_y << " [pi mm mrad]" << endl;
     cout << "===================================================================" << endl;
     cout << "Fitted Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
     cout << "Fitted Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;
-    cout << "(dx'/dxM, dy'/dyM) = (" << TMath::Tan(phi_X) << " mrad/mm, " << TMath::Tan(phi_Y) << " mrad/mm)" << endl;
+    cout << "Correlation (rho_{xM,x'}, rho_{yM,y') = (" << correlation_x << ", " << correlation_y << ")" << endl;
 
 
     c1->cd(7);
@@ -602,11 +587,11 @@ int main (int argc, char** argv){
     l_emitx.SetTextAlign(12);
     l_emitx.SetTextSize(0.05);
     l_emitx.DrawLatex(0.05,0.9,"Horizontal #epsilon_{2#sigma}:");
-    l_emitx.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_x,stdev_emittance_x_err));
-    l_emitx.DrawLatex(0.05,0.7,"Fit results:");
-    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g#pm%g [mm]",xM_mean,xM_mean_ERR));
-    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g#pm%g [mm/mm]",TMath::Tan(xp_mean),xp_mean_ERR)); // Tan(x) ~=~ x when x is small
-    l_emitx.DrawLatex(0.03,0.4,Form("dx_{T}/dx_{M} = %g#pm%g [mrad/mm]",TMath::Tan(phi_X),phi_X_ERR));
+    l_emitx.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_x));
+    l_emitx.DrawLatex(0.05,0.7,"Calculation results:");
+    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g [mm]",xM_mean));
+    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g [mrad]",xp_mean));
+    l_emitx.DrawLatex(0.03,0.4,Form("#rho_{x_{M},x'} = %g",correlation_x));
 
     c1->cd(8);
 
@@ -614,11 +599,11 @@ int main (int argc, char** argv){
     l_emity.SetTextAlign(12);
     l_emity.SetTextSize(0.05);
     l_emity.DrawLatex(0.05,0.9,"Vertical #epsilon_{2#sigma}:");
-    l_emity.DrawLatex(0.03,0.8,Form("%g#pm%g [#pi mm mrad]",stdev_emittance_y,stdev_emittance_y_err));
-    l_emity.DrawLatex(0.05,0.7,"Fit results:");
-    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g#pm%g [mm]",yM_mean,yM_mean_ERR));
-    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g#pm%g [mm/mm]",TMath::Tan(yp_mean),yp_mean_ERR)); // Tan(y) ~=~ y when y is small
-    l_emity.DrawLatex(0.03,0.4,Form("dy_{T}/dy_{M} = %g#pm%g [mrad/mm]",TMath::Tan(phi_Y),phi_Y_ERR));
+    l_emity.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_y));
+    l_emity.DrawLatex(0.05,0.7,"Calculation results:");
+    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g [mm]",yM_mean));
+    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g [mrad]",yp_mean));
+    l_emity.DrawLatex(0.03,0.4,Form("#rho_{y_{M},y'} = %g",correlation_y));
 
 
     c1->Update();
