@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{cite}
+\allowdisplaybreaks[1]
 
 \title{README for the scripts in ionizer45}
 \author{N. Ozawa}
@@ -436,6 +437,134 @@ By definition, the StDev emittance becomes smaller as the beam velocity is incre
 \end{eqnarray*}
 could be used instead. In the code, the values for this $\epsilon_n$ are also calculated. It should be noted that $\bar{v_x}$, $\bar{v_y}$, and $\bar{v_z}$ stand for the "average" velocity components at the MCP, calculated simply by the arithmetic sums of $v_x$, $v_y$, and $v_z$ respectively over all ions. \\
 For the region $w \ll 50$ mm, the beam is bended from the upwards direction to the 45-degree direction as it is accelerated. This results in an increase in $v_z$ along with a decrease in $v_y$. At the same time, since $P(w)$ is always tilted in the 45-degree angle, it cannot calculate the beam "position" correctly. From these effects, the emittance values obtained at small distances $w$ should be treated with care.
+
+
+
+
+\section{Alternative method of calculating the emittance}
+The method of calculating $\epsilon_{2\sigma}$ by a 2D histogram fit has been given above. While this method is conceptually simple to understand, it is computationally heavy, and preferably must be improved. Here, a method of direct calcuation is given. \\
+
+First, we consider the case where the axes of the distribution ellipse are perfectly aligned with the $x_M/y_M$-$x'/y'$ axes. The ion beam can be characterized by the set of position and direction parameters $\left\{ \left({x_{M}}_i,{y_{M}}_i; x'_i,y'_i \right)\right\}^{i=1}_{N_{ions}}$ at some plane $P(w)$. By definition, the position and direction standard deviations $\sigma_{x_M/y_M}$ and $\sigma_{x'/y'}$ are given by
+\begin{eqnarray*}
+{\sigma_{x_M}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({x_M}_i - \overline{x_M})^2 \\
+& = & \frac{1}{N_{ions}} \left( {{x_M}_i}^2 - 2 {x_M}_i \overline{x_M} + \overline{x_M}^2 \right) \\
+& = & \overline{{x_M}^2} - \overline{{x_M}}^2 \\
+{\sigma_{y_M}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({y_M}_i - \overline{y_M})^2 \\
+& = & \frac{1}{N_{ions}} \left( {{y_M}_i}^2 - 2 {y_M}_i \overline{y_M} + \overline{y_M}^2 \right) \\
+& = & \overline{{y_M}^2} - \overline{{y_M}}^2 \\
+{\sigma_{x'}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({x'}_i - \overline{x'})^2 \\
+& = & \frac{1}{N_{ions}} \left( {{x'}_i}^2 - 2 {x'}_i \overline{x'} + \overline{x'}^2 \right) \\
+& = & \overline{{x'}^2} - \overline{{x'}}^2 \\
+{\sigma_{y'}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({y'}_i - \overline{y'})^2 \\
+& = & \frac{1}{N_{ions}} \left( {{y'}_i}^2 - 2 {y'}_i \overline{y'} + \overline{y'}^2 \right) \\
+& = & \overline{{y'}^2} - \overline{{y'}}^2 .
+\end{eqnarray*}
+Then the 2$\sigma$ emittance can be calculated by
+\begin{eqnarray*}
+\epsilon_{2\sigma,x} & = & 4 \sigma_{x_M} \sigma_{x'} \\
+\epsilon_{2\sigma,y} & = & 4 \sigma_{y_M} \sigma_{y'}. \\
+\end{eqnarray*}
+
+This method becomes insufficient when the axes of the elliptic distribution $\xi_M/\eta_M$-$\xi'/\eta'$ is rotated/translated with respect to the physical $x_M/y_M$-$x'/y'$ axes by an angle $\varphi$ and offset ${x_M}_0/{y_M}_0/{x'}_0/{y'}_0$ as
+\begin{eqnarray*}
+\left( 
+\begin{array}{c}
+	\xi_M \\
+	\xi'
+\end{array}
+\right) & = & \left(
+\begin{array}{cc}
+	\cos{\varphi_x} & -\sin{\varphi_x} \\
+	\sin{\varphi_x} & \cos{\varphi_x}
+\end{array}
+\right) \left(
+\begin{array}{c}
+	x_M \\
+	x'
+\end{array}
+\right) + \left(
+\begin{array}{c}
+	{x_M}_0 \\
+	{x'}_0
+\end{array}
+\right) \\
+\left( 
+\begin{array}{c}
+	\eta_M \\
+	\eta'
+\end{array}
+\right) & = & \left(
+\begin{array}{cc}
+	\cos{\varphi_y} & -\sin{\varphi_y} \\
+	\sin{\varphi_y} & \cos{\varphi_y}
+\end{array}
+\right) \left(
+\begin{array}{c}
+	y_M \\
+	y'
+\end{array}
+\right) + \left(
+\begin{array}{c}
+	{y_M}_0 \\
+	{y'}_0
+\end{array}
+\right).
+\end{eqnarray*}
+In addition to the $\sigma_{x_M}/\sigma_{y_M}/\sigma_{x'}/\sigma_{y'}$ given above, the covariances
+\begin{eqnarray*}
+\sigma_{x_M,x'} & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} \left( {x_M}_i - \overline{x_M} \right) \left( {x'}_i - \overline{x'} \right) \\
+& = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} \left( {x_M}_i {x'}_i - {x_M}_i \overline{x'} - {x'}_i \overline{x_M} + \overline{x_M}\overline{x'} \right) \\
+& = & \overline{x_M x'} - \overline{x_M} \overline{x'} \\
+\sigma_{y_M,y'} & = & \overline{y_M y'} - \overline{y_M}\overline{y'}
+\end{eqnarray*}
+must be used to account for the rotations $\varphi_x/\varphi_y$. \\
+
+The standard deviations in $\xi_M/\eta_M$-$\xi'/\eta'$ coordinates can be expressed in terms of $x_M/y_M/x'/y'$ as
+\begin{eqnarray*}
+{\sigma_{\xi_M}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({\xi_M}_i - \overline{\xi_M})^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \left( \cos{\varphi_x} {x_M}_i - \sin{\varphi_x} {x'}_i + {x_M}_0 \right) - \frac{1}{N_{ions}}\sum_j \left( \cos{\varphi_x} {x_M}_j - \sin{\varphi_x} {x'}_j + {x_M}_0 \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \left( \cos{\varphi_x}{x_M}_i - \sin{\varphi_x}{x'}_i \right) - \left( \cos{\varphi_x}\overline{x_M} - \sin{\varphi_y}\overline{x'} \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \cos{\varphi_x} \left( {x_M}_i - \overline{x_M} \right) - \sin{\varphi_x} \left( {x'}_i - \overline{x'} \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \cos^2{\varphi_x} \left( {x_M}_i - \overline{x_M} \right)^2 - 2\cos{\varphi_x}\sin{\varphi_x} \left( {x_M}_i-\overline{x_M} \right) \left( {x'}_i-\overline{x'} \right) + \sin^2{\varphi_x}\left( {x'}_i - \overline{x'} \right)^2 \right\} \\
+& = & \cos^2{\varphi_x} {\sigma_{x_M}}^2 -2\cos{\varphi_x}\sin{\varphi_x} \sigma_{x_M,x'} + \sin^2{\varphi_x} {\sigma_{x'}}^2 \\
+& = & \frac{1}{2} \left\{ \left(1+\cos{2\varphi_x}\right) {\sigma_{x_M}}^2 - 2\sin{2\varphi_x}\sigma_{x_M,x'} + \left(1-\cos{2\varphi_x}\right) {\sigma_{x'}}^2 \right\} \\
+{\sigma_{\xi'}}^2 & = & \frac{1}{N_{ions}} \sum_{i=1}^{N_{ions}} ({\xi'}_i - \overline{\xi'})^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \left( \sin{\varphi_x} {x_M}_i + \cos{\varphi_x} {x'}_i + {x'}_0 \right) - \frac{1}{N_{ions}}\sum_j \left( \sin{\varphi_x} {x_M}_j + \cos{\varphi_x} {x'}_j + {x'}_0 \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \left( \sin{\varphi_x}{x_M}_i + \cos{\varphi_x}{x'}_i \right) - \left( \sin{\varphi_x}\overline{x_M} + \cos{\varphi_y}\overline{x'} \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \sin{\varphi_x} \left( {x_M}_i - \overline{x_M} \right) + \cos{\varphi_x} \left( {x'}_i - \overline{x'} \right) \right\}^2 \\
+& = & \frac{1}{N_{ions}} \sum_i \left\{ \sin^2{\varphi_x} \left( {x_M}_i - \overline{x_M} \right)^2 + 2\sin{\varphi_x}\cos{\varphi_x} \left( {x_M}_i-\overline{x_M} \right) \left( {x'}_i-\overline{x'} \right) + \cos^2{\varphi_x}\left( {x'}_i - \overline{x'} \right)^2 \right\} \\
+& = & \sin^2{\varphi_x} {\sigma_{x_M}}^2 +2\sin{\varphi_x}\cos{\varphi_x} \sigma_{x_M,x'} + \cos^2{\varphi_x} {\sigma_{x'}}^2 \\
+& = & \frac{1}{2} \left\{ \left(1-\cos{2\varphi_x}\right) {\sigma_{x_M}}^2 + 2\sin{2\varphi_x}\sigma_{x_M,x'} + \left(1+\cos{2\varphi_x}\right) {\sigma_{x'}}^2 \right\} \\
+{\sigma_{\eta_M}}^2 & = & \frac{1}{2} \left\{ \left(1+\cos{2\varphi_y}\right) {\sigma_{y_M}}^2 - 2\sin{2\varphi_y}\sigma_{y_M,y'} + \left(1-\cos{2\varphi_y}\right) {\sigma_{y'}}^2 \right\} \\
+{\sigma_{\eta'}}^2 & = & \frac{1}{2} \left\{ \left(1-\cos{2\varphi_y}\right) {\sigma_{y_M}}^2 + 2\sin{2\varphi_y}\sigma_{y_M,y'} + \left(1+\cos{2\varphi_y}\right) {\sigma_{y'}}^2 \right\}
+\end{eqnarray*}
+and the emittances as
+\begin{eqnarray*}
+\epsilon_{2\sigma,\xi} & = & 4\sigma_{\xi_M}\sigma_{\xi'} \\
+\epsilon_{2\sigma,\eta} & = & 4\sigma_{\eta_M}\sigma_{\eta'}.
+\end{eqnarray*}
+By definition, $\varphi_x/\varphi_y$ are set at some values where the standard deviations $\sigma_{\xi_M}/\sigma_{\eta_M}/\sigma_{\xi'}/\sigma_{\eta'}$ become minimized. This indicates that
+\begin{eqnarray*}
+\frac{\partial \left({\sigma_{\xi_M}}\right)}{\partial \varphi_x} & = & -\sin{2\varphi_x}{\sigma_{x_M}}^2  + 2\cos{2\varphi_x}\sigma_{x_M,x'} + \sin{2\varphi_x}{\sigma_{x'}}^2 = 0 \\
+\tan{2\varphi_x} & = & \frac{2\sigma_{x_M,x'}}{{\sigma_{x_M}}^2 - {\sigma_{x'}}^2} \\
+\tan{2\varphi_y} & = & \frac{2\sigma_{y_M,y'}}{{\sigma_{y_M}}^2 - {\sigma_{y'}}^2}
+\end{eqnarray*}
+from which the values of $\varphi_x/\varphi_y$ could be readily obtained.\\
+
+By using these expressions, the emittance values could be redefined in terms of $x_M/y_M/x'/y'$ as
+\begin{eqnarray*}
+\epsilon_{2\sigma,x} & = & 4\sigma_{\xi_M}\sigma_{\xi'} \\
+& = & 4\sigma_{x_M}\sigma_{x'} \sqrt{1 - {\rho_{x_M,x'}}^2} \\
+\epsilon_{2\sigma,y} & = & 4\sigma_{\eta_M}\sigma_{\eta'} \\
+& = & 4\sigma_{y_M}\sigma_{y'} \sqrt{1 - {\rho_{y_M,y'}}^2}
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+\rho_{x_M,x'} & = & \frac{\sigma_{x_M,x'}}{\sigma_{x_M}\sigma_{x'}} \\
+\rho_{y_M,y'} & = & \frac{\sigma_{y_M,y'}}{\sigma_{y_M}\sigma_{y'}} .
+\end{eqnarray*}
+
+
 
 
 
