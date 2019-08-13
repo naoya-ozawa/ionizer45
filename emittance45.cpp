@@ -576,8 +576,8 @@ int main (int argc, char** argv){
     cout << "===================================================================" << endl;
     cout << "2-sigma Emittance-Y = " << stdev_emittance_y << " [pi mm mrad]" << endl;
     cout << "===================================================================" << endl;
-    cout << "Fitted Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
-    cout << "Fitted Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;
+    cout << "Calculated Beam Mean at (" << xM_mean << " mm, " << yM_mean << " mm)_M on MCP" << endl;
+    cout << "Calculated Divergence Mean at (x'_0, y'_0) = (" << xp_mean << ", " << yp_mean << ")" << endl;
     cout << "Correlation (rho_{xM,x'}, rho_{yM,y') = (" << correlation_x << ", " << correlation_y << ")" << endl;
 
 
