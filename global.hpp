@@ -10,4 +10,6 @@
 const double h = 29.0; 
 const char *filepath = "./../";
 // const char *filepath = "./"; // for local test
-
+const int PLpts = 1000;
+const double R_target = 6.0;
+const double R_MCP = 12.5;

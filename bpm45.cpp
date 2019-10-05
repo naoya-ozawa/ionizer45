@@ -21,7 +21,7 @@
 #include <TGraphErrors.h>
 #include <TMultiGraph.h>
 #include <TCanvas.h>
-
+#include <TPolyLine.h>
 #include <TH2D.h>
 #include <TLatex.h>
 
@@ -227,6 +227,18 @@ int main (int argc, char** argv){
         }
         src->Draw("colz");
 
+	// Draw a circle indicating the target
+	TPolyLine *target = new TPolyLine(PLpts);
+	for (int k=0; k<PLpts; ++k){
+		double X = R_target*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+		double Y = R_target*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+		target->SetPoint(k,X,Y);
+	}
+	target->SetLineWidth(2);
+	target->SetLineColor(2);
+	target->Draw();
+
+
 
         c1->cd(3);
         for (int i = 0; i < Nions; ++i){
@@ -360,8 +372,20 @@ int main (int argc, char** argv){
 
         mcp->Draw("colz");
 
+	// Draw a circle indicating the MCP
+	TPolyLine *MCP_circ = new TPolyLine(PLpts);
+	for (int k=0; k<PLpts; ++k){
+		double X = R_MCP*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+		double Y = R_MCP*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+		MCP_circ->SetPoint(k,X,Y);
+	}
+	MCP_circ->SetLineWidth(2);
+	MCP_circ->SetLineColor(2);
+	MCP_circ->Draw();
 
-        c1->cd(4);
+
+
+	c1->cd(4);
    
         TLatex l_mcp;
         l_mcp.SetTextAlign(12);
@@ -372,6 +396,8 @@ int main (int argc, char** argv){
         l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",mcp_rmsx));
         l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",mcp_rmsy));
         l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+
+
 
         c1->Update();
         c1->Modified();
