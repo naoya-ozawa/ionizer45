@@ -21,5 +21,6 @@ emitscan:	emitscan45.cpp
 duplicatecsv:	$(CSVPATH)testplane-emittance.csv
 	cat $(CSVPATH)testplane-emittance.csv | cut -d "," -f 1-4 > $(CSVPATH)testplane-bpm.csv
 
-clean:	bpm45 view
-	rm ./bpm45 ./view
+clean:	$(CSVPATH)testplane-emittance.csv
+	rm $(CSVPATH)testplane-emittance.csv
+	rm $(CSVPATH)testplane-bpm.csv
