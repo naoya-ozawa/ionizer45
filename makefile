@@ -6,8 +6,11 @@ CSVPATH	= ./../
 all:	rms45.cpp
 	`root-config --cxx --cflags` -o rms45 rms45.cpp `root-config --glibs`
 
+cent:	cent45.cpp
+	`root-config --cxx --cflags` -o cent45 cent45.cpp `root-config --glibs`
+
 bpm:	bpm45.cpp
-	`root-config --cxx --cflags` -o bpm45 bpm45.cpp `root-config --glibs`
+	`root-config --cxx --cflags` -o cent45 cent45.cpp `root-config --glibs`
 
 view:	trajectory_display.cpp
 	`root-config --cxx --cflags` -o view trajectory_display.cpp `root-config --glibs`
