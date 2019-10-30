@@ -13,3 +13,8 @@ const char *filepath = "./../";
 const int PLpts = 1000;
 const double R_target = 6.0;
 const double R_MCP = 12.5;
+
+// Set the origin point that was defined in the SIMION simulation parameters
+const double SIMION_origin_x = 349.9;
+const double SIMION_origin_y = 253.7;
+const double SIMION_origin_z = 130.0;
