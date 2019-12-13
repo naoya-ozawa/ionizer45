@@ -546,7 +546,7 @@ int main (int argc, char** argv){
     hemit->Draw("COLZ");
 
     double correlation_x = Covar_x/(StDev_xM*StDev_xp);
-    double stdev_emittance_x = 4.0*StDev_xM*StDev_xp * TMath::Sqrt(1.0 - correlation_x);
+    double stdev_emittance_x = 4.0*StDev_xM*StDev_xp * TMath::Sqrt(1.0 - (correlation_x*correlation_x));
 
     // Draw the horizontal 2-sigma ellipse
     TPolyLine *hemit_2sigma = new TPolyLine(ellipse_points);
@@ -570,7 +570,7 @@ int main (int argc, char** argv){
     vemit->Draw("COLZ");
 
     double correlation_y = Covar_y/(StDev_yM*StDev_yp);
-    double stdev_emittance_y = 4.0*StDev_yM*StDev_yp * TMath::Sqrt(1.0 - correlation_y);
+    double stdev_emittance_y = 4.0*StDev_yM*StDev_yp * TMath::Sqrt(1.0 - (correlation_y*correlation_y));
 
     // Draw the vertical 2-sigma ellipse
     TPolyLine *vemit_2sigma = new TPolyLine(ellipse_points);
