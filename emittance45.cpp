@@ -1,4 +1,4 @@
-// A script to 
+// A script to
 // 1. Define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. Plot the "emittance" diagram in x-x' and y-y' planes
 // 3. Calculate the 2-sigma emittance value in terms of pi*rad*m
@@ -158,7 +158,7 @@ int main (int argc, char** argv){
     TRint rootapp("app",&argc,argv);
 
     TCanvas *c1 = new TCanvas();
-    c1->Divide(4,2);
+    c1->Divide(2,2);
 
     // SIMION output CSV file
     // in the form of
@@ -237,7 +237,7 @@ int main (int argc, char** argv){
             }
             catch (const invalid_argument& e){
                 // Catch the EOF
-                cout << "Read " << k << " lines from " << zx_file << endl; 
+                cout << "Read " << k << " lines from " << zx_file << endl;
                 k = -1;
             }
         }
@@ -259,7 +259,10 @@ int main (int argc, char** argv){
     cout << Nions << " ions flown" << endl;
 
 
-
+    // Define the target center point in SIMION coordinates
+  	double target_CPx = SIMION_origin_x;
+  	double target_CPy = SIMION_origin_y;
+  	double target_CPz = SIMION_origin_z - h;
 
     // Find the source center point and draw upper-view 2d histo (x-->-y, y-->x)
     // This will define the origin in Inventor coordinates
@@ -269,54 +272,54 @@ int main (int argc, char** argv){
     double src_CPx = 0.0;
     double src_CPy = 0.0;
     double src_CPz = 0.0;
-    double src_RMSx = 0.0;
-    double src_RMSy = 0.0;
+    double src_StDevx = 0.0;
+    double src_StDevy = 0.0;
 
     TH2D *src = new TH2D("src","Generated Ions at Target;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->GetEntry(src_elist->GetEntry(i));
-        src_CPx += X_position;
-        src_CPy += Y_position;
-        src_CPz += Z_position;
-    }
-    src_CPx /= Nions;
-    src_CPy /= Nions;
-    src_CPz /= Nions;
-
-    cout << "source at (" << src_CPx << ", " << src_CPy << ", " << src_CPz << ")_SIMION" << endl;
-
-    for (int i = 0; i < Nions; ++i){
-        zxfocus->GetEntry(src_elist->GetEntry(i));
-        double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
-        double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
+        double srcx = position_on_target(X_position,Y_position,target_CPx,target_CPy,"x");
+        src_CPx += srcx;
+        src_StDevx += srcx*srcx;
+        double srcy = position_on_target(X_position,Y_position,target_CPx,target_CPy,"y");
+        src_CPy += srcy;
+        src_StDevy += srcy*srcy;
         src->Fill(srcx,srcy);
-//        cout << "start point for ion " << i+1 << " = (" << srcx << ", " << srcy << ")_BPM" << endl;
     }
     src->Draw("colz");
 
-
-
-
-    c1->cd(5);
-    for (int i = 0; i < Nions; ++i){
-        zxfocus->GetEntry(src_elist->GetEntry(i));
-        double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
-        double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
-        src_RMSx += srcx*srcx;
-        src_RMSy += srcy*srcy;
+    // Draw a circle indicating the target
+    TPolyLine *target = new TPolyLine(PLpts);
+    for (int k=0; k<PLpts; ++k){
+      double X = R_target*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+      double Y = R_target*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+      target->SetPoint(k,X,Y);
     }
-    src_RMSx = TMath::Sqrt(src_RMSx/Nions);
-    src_RMSy = TMath::Sqrt(src_RMSy/Nions);
+    target->SetLineWidth(2);
+    target->SetLineColor(2);
+    target->Draw();
+
+
+
+//    c1->cd(5);
+    src_CPx /= double(Nions);
+  	src_StDevx /= double(Nions);
+  	src_StDevx = TMath::Sqrt(src_StDevx - (src_CPx*src_CPx));
+  	src_CPy /= double(Nions);
+  	src_StDevy /= double(Nions);
+  	src_StDevy = TMath::Sqrt(src_StDevy - (src_CPy*src_CPy));
 
     TLatex l_src;
     l_src.SetTextAlign(12);
     l_src.SetTextSize(0.05);
-    l_src.DrawLatex(0.15,0.9,"Ion Source");
-    l_src.DrawLatex(0.15,0.8,"MEANx = 0 [mm]"); // By definition
-    l_src.DrawLatex(0.15,0.7,"MEANy = 0 [mm]"); // By definition
-    l_src.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",src_RMSx));
-    l_src.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",src_RMSy));
-    l_src.DrawLatex(0.15,0.4,Form("Number of Flown Particles = %d",Nions));
+//    l_src.DrawLatex(0.15,0.9,"Ion Source");
+//    l_src.DrawLatex(0.15,0.8,"MEANx = 0 [mm]"); // By definition
+//    l_src.DrawLatex(0.15,0.7,"MEANy = 0 [mm]"); // By definition
+//    l_src.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",src_RMSx));
+//    l_src.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",src_RMSy));
+//    l_src.DrawLatex(0.15,0.4,Form("Number of Flown Particles = %d",Nions));
+  l_src.DrawLatex(-13.,-12.0,Form("Mean: (%3.2f, %3.2f) mm",src_CPx,src_CPy));
+  l_src.DrawLatex(-13.,-12.2,Form("StDv: (%3.2f, %3.2f) mm",src_StDevx,src_StDevy));
 
 
 
@@ -325,8 +328,7 @@ int main (int argc, char** argv){
 
 
 
-
-    // Show beam profile at the given w with end view (y-->x, +z-x-->y) 
+    // Show beam profile at the given w with end view (y-->x, +z-x-->y)
     c1->cd(2);
 
     double stepfrontX = 0.0;
@@ -394,9 +396,9 @@ int main (int argc, char** argv){
             velfrontZ = Z_velocity;
 
             // vec{P_b}
-            double x_0 = stepbackX - src_CPx;
-            double y_0 = stepbackY - src_CPy;
-            double z_0 = stepbackZ - src_CPz - h;
+            double x_0 = stepbackX - target_CPx;
+            double y_0 = stepbackY - target_CPy;
+            double z_0 = stepbackZ - (target_CPz + h);
 
             // d/dt vec{P_b}
             double vx_0 = velbackX;
@@ -415,7 +417,7 @@ int main (int argc, char** argv){
 
             // Check the position wrt P(w)
             double d_p = dist_testplane(w,x_0,x_d,z_0,z_d,h);
-     
+
             if ( d_p > 0.0 ){// The ion passed P(w)
                 // t_trj
                 trjptx[i] = t_trj(w,x_0,x_d,z_0,z_d)*x_d + x_0;
@@ -472,6 +474,9 @@ int main (int argc, char** argv){
             yp_sqmn += bpmyp*bpmyp;
             x_promn += bpmx*bpmxp;
             y_promn += bpmy*bpmyp;
+            if ((i+1)%(Nions/10) == 0){
+              cout << "Analyzed " << i+1 << " ions at BPM" << endl;
+            }
         }else{
             cout << "Ion #" << i+1 << " did not survive!" << endl;
         }
@@ -500,23 +505,35 @@ int main (int argc, char** argv){
 
     double phi_X = TMath::ATan(0.5 * Covar_x / (StDev_xM*StDev_xM - StDev_xp*StDev_xp) );
     double phi_Y = TMath::ATan(0.5 * Covar_y / (StDev_yM*StDev_yM - StDev_yp*StDev_yp) );
-   
+
     mcp->Draw("colz");
 
+    // Draw a circle indicating the MCP
+  	TPolyLine *MCP_circ = new TPolyLine(PLpts);
+  	for (int k=0; k<PLpts; ++k){
+  		double X = R_MCP*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+  		double Y = R_MCP*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+  		MCP_circ->SetPoint(k,X,Y);
+  	}
+  	MCP_circ->SetLineWidth(2);
+  	MCP_circ->SetLineColor(2);
+  	MCP_circ->Draw();
 
-    c1->cd(6);
-   
+
+//    c1->cd(6);
+
     TLatex l_mcp;
     l_mcp.SetTextAlign(12);
     l_mcp.SetTextSize(0.05);
-    l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
-    l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",xM_mean));
-    l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",yM_mean));
-    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",StDev_xM));
-    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",StDev_yM));
-    l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
-
-
+//    l_mcp.DrawLatex(0.15,0.9,Form("BPM at w = %g [mm]",w));
+//    l_mcp.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",xM_mean));
+//    l_mcp.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",yM_mean));
+//    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",StDev_xM));
+//    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",StDev_yM));
+//    l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
+    l_mcp.DrawLatex(-13.,-12.0,Form("Transmission: %3.2f%%",100.*double(mcp_hits)/double(Nions)));
+    l_mcp.DrawLatex(-13.,-12.1,Form("Mean: (%3.2f, %3.2f) mm",xM_mean,yM_mean));
+    l_mcp.DrawLatex(-13.,-12.2,Form("StDv: (%3.2f, %3.2f) mm",StDev_xM,StDev_yM));
 
 
 
@@ -525,7 +542,7 @@ int main (int argc, char** argv){
     c1->cd(3);
 
     int ellipse_points = 1000;
-    
+
     hemit->Draw("COLZ");
 
     double correlation_x = Covar_x/(StDev_xM*StDev_xp);
@@ -581,30 +598,31 @@ int main (int argc, char** argv){
     cout << "Correlation (rho_{xM,x'}, rho_{yM,y') = (" << correlation_x << ", " << correlation_y << ")" << endl;
 
 
-    c1->cd(7);
+    c1->cd(3);
 
     TLatex l_emitx;
     l_emitx.SetTextAlign(12);
     l_emitx.SetTextSize(0.05);
-    l_emitx.DrawLatex(0.05,0.9,"Horizontal #epsilon_{2#sigma}:");
-    l_emitx.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_x));
-    l_emitx.DrawLatex(0.05,0.7,"Calculation results:");
-    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g [mm]",xM_mean));
-    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g [mrad]",xp_mean));
-    l_emitx.DrawLatex(0.03,0.4,Form("#rho_{x_{M},x'} = %g",correlation_x));
+//    l_emitx.DrawLatex(0.05,0.9,"Horizontal #epsilon_{2#sigma}:");
+//    l_emitx.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_x));
+//    l_emitx.DrawLatex(0.05,0.7,"Calculation results:");
+//    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g [mm]",xM_mean));
+//    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g [mrad]",xp_mean));
+//    l_emitx.DrawLatex(0.03,0.4,Form("#rho_{x_{M},x'} = %g",correlation_x));
+    l_emitx.DrawLatex(0.0,-40.0,Form("#epsilon_{x,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_x));
 
-    c1->cd(8);
+    c1->cd(4);
 
     TLatex l_emity;
     l_emity.SetTextAlign(12);
     l_emity.SetTextSize(0.05);
-    l_emity.DrawLatex(0.05,0.9,"Vertical #epsilon_{2#sigma}:");
-    l_emity.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_y));
-    l_emity.DrawLatex(0.05,0.7,"Calculation results:");
-    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g [mm]",yM_mean));
-    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g [mrad]",yp_mean));
-    l_emity.DrawLatex(0.03,0.4,Form("#rho_{y_{M},y'} = %g",correlation_y));
-
+//    l_emity.DrawLatex(0.05,0.9,"Vertical #epsilon_{2#sigma}:");
+//    l_emity.DrawLatex(0.03,0.8,Form("%g [#pi mm mrad]",stdev_emittance_y));
+//    l_emity.DrawLatex(0.05,0.7,"Calculation results:");
+//    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g [mm]",yM_mean));
+//    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g [mrad]",yp_mean));
+//    l_emity.DrawLatex(0.03,0.4,Form("#rho_{y_{M},y'} = %g",correlation_y));
+    l_emity.DrawLatex(0.0,-40.0,Form("#epsilon_{y,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_y));
 
     c1->Update();
     c1->Modified();
@@ -617,4 +635,3 @@ int main (int argc, char** argv){
     return 0;
 
 }
-
