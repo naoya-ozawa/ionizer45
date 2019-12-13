@@ -353,6 +353,9 @@ int main (int argc, char** argv){
                 mcp->Fill( bpmx , bpmy );
                 mcp_cpx += bpmx;
                 mcp_cpy += bpmy;
+		if ((i+1)%(Nions/10) == 0){
+			cout << "Analyzed " << i+1 << " ions at BPM" << endl;
+		}
             }else{
                 cout << "Ion #" << i+1 << " did not survive!" << endl;
             }
