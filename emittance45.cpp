@@ -157,7 +157,7 @@ int main (int argc, char** argv){
 
     TRint rootapp("app",&argc,argv);
 
-    TCanvas *c1 = new TCanvas();
+    TCanvas *c1 = new TCanvas("c1","c1",812,824);
     c1->Divide(2,2);
 
     // SIMION output CSV file
@@ -287,6 +287,7 @@ int main (int argc, char** argv){
         src->Fill(srcx,srcy);
     }
     src->Draw("colz");
+    src->GetYaxis()->SetTitleOffset(1.2);
 
     // Draw a circle indicating the target
     TPolyLine *target = new TPolyLine(PLpts);
@@ -298,7 +299,6 @@ int main (int argc, char** argv){
     target->SetLineWidth(2);
     target->SetLineColor(2);
     target->Draw();
-
 
 
 //    c1->cd(5);
@@ -318,8 +318,8 @@ int main (int argc, char** argv){
 //    l_src.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",src_RMSx));
 //    l_src.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",src_RMSy));
 //    l_src.DrawLatex(0.15,0.4,Form("Number of Flown Particles = %d",Nions));
-  l_src.DrawLatex(-13.,-12.0,Form("Mean: (%3.2f, %3.2f) mm",src_CPx,src_CPy));
-  l_src.DrawLatex(-13.,-12.2,Form("StDv: (%3.2f, %3.2f) mm",src_StDevx,src_StDevy));
+  l_src.DrawLatex(-13.,-10.5,Form("Mean: (%3.2f, %3.2f) mm",src_CPx,src_CPy));
+  l_src.DrawLatex(-13.,-13.5,Form("StDv: (%3.2f, %3.2f) mm",src_StDevx,src_StDevy));
 
 
 
@@ -364,8 +364,8 @@ int main (int argc, char** argv){
     TH2D *mcp = new TH2D("mcp","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     int mcp_hits = 0;
 
-    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
-    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y_{M} (mm);Y' = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-100.,100.);
+    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y_{M} (mm);Y' = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-100.,100.);
 
     double xM_mean = 0.0;
     double xM_sqmn = 0.0;
@@ -507,6 +507,7 @@ int main (int argc, char** argv){
     double phi_Y = TMath::ATan(0.5 * Covar_y / (StDev_yM*StDev_yM - StDev_yp*StDev_yp) );
 
     mcp->Draw("colz");
+    mcp->GetYaxis()->SetTitleOffset(1.2);
 
     // Draw a circle indicating the MCP
   	TPolyLine *MCP_circ = new TPolyLine(PLpts);
@@ -531,9 +532,9 @@ int main (int argc, char** argv){
 //    l_mcp.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",StDev_xM));
 //    l_mcp.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",StDev_yM));
 //    l_mcp.DrawLatex(0.15,0.4,Form("Transmission rate %g%%",100.*double(mcp_hits)/double(Nions)));
-    l_mcp.DrawLatex(-13.,-12.0,Form("Transmission: %3.2f%%",100.*double(mcp_hits)/double(Nions)));
-    l_mcp.DrawLatex(-13.,-12.1,Form("Mean: (%3.2f, %3.2f) mm",xM_mean,yM_mean));
-    l_mcp.DrawLatex(-13.,-12.2,Form("StDv: (%3.2f, %3.2f) mm",StDev_xM,StDev_yM));
+    l_mcp.DrawLatex(-13.,-7.5,Form("Transmission: %3.2f%%",100.*double(mcp_hits)/double(Nions)));
+    l_mcp.DrawLatex(-13.,-10.5,Form("Mean: (%3.2f, %3.2f) mm",xM_mean,yM_mean));
+    l_mcp.DrawLatex(-13.,-13.5,Form("StDv: (%3.2f, %3.2f) mm",StDev_xM,StDev_yM));
 
 
 
@@ -544,6 +545,7 @@ int main (int argc, char** argv){
     int ellipse_points = 1000;
 
     hemit->Draw("COLZ");
+    hemit->GetYaxis()->SetTitleOffset(1.2);
 
     double correlation_x = Covar_x/(StDev_xM*StDev_xp);
     double stdev_emittance_x = 4.0*StDev_xM*StDev_xp * TMath::Sqrt(1.0 - (correlation_x*correlation_x));
@@ -558,8 +560,8 @@ int main (int argc, char** argv){
 
         hemit_2sigma->SetPoint(k,X,Y);
     }
-    hemit_2sigma->SetLineWidth(3);
-    hemit_2sigma->SetLineColor(2);
+    hemit_2sigma->SetLineWidth(2);
+    hemit_2sigma->SetLineColor(4);
     hemit_2sigma->Draw();
 
 
@@ -568,6 +570,7 @@ int main (int argc, char** argv){
 
     c1->cd(4);
     vemit->Draw("COLZ");
+    vemit->GetYaxis()->SetTitleOffset(1.2);
 
     double correlation_y = Covar_y/(StDev_yM*StDev_yp);
     double stdev_emittance_y = 4.0*StDev_yM*StDev_yp * TMath::Sqrt(1.0 - (correlation_y*correlation_y));
@@ -582,8 +585,8 @@ int main (int argc, char** argv){
 
         vemit_2sigma->SetPoint(k,X,Y);
     }
-    vemit_2sigma->SetLineWidth(3);
-    vemit_2sigma->SetLineColor(2);
+    vemit_2sigma->SetLineWidth(2);
+    vemit_2sigma->SetLineColor(4);
     vemit_2sigma->Draw();
 
 
@@ -609,7 +612,7 @@ int main (int argc, char** argv){
 //    l_emitx.DrawLatex(0.03,0.6,Form("x_{M_{0}} = %g [mm]",xM_mean));
 //    l_emitx.DrawLatex(0.03,0.5,Form("x'_{0} = %g [mrad]",xp_mean));
 //    l_emitx.DrawLatex(0.03,0.4,Form("#rho_{x_{M},x'} = %g",correlation_x));
-    l_emitx.DrawLatex(0.0,-40.0,Form("#epsilon_{x,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_x));
+    l_emitx.DrawLatex(-9.,-85.0,Form("#epsilon_{x,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_x));
 
     c1->cd(4);
 
@@ -622,7 +625,7 @@ int main (int argc, char** argv){
 //    l_emity.DrawLatex(0.03,0.6,Form("y_{M_{0}} = %g [mm]",yM_mean));
 //    l_emity.DrawLatex(0.03,0.5,Form("y'_{0} = %g [mrad]",yp_mean));
 //    l_emity.DrawLatex(0.03,0.4,Form("#rho_{y_{M},y'} = %g",correlation_y));
-    l_emity.DrawLatex(0.0,-40.0,Form("#epsilon_{y,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_y));
+    l_emity.DrawLatex(-9.,-85.0,Form("#epsilon_{y,2#sigma} = %3.2f #pi mm mrad",stdev_emittance_y));
 
     c1->Update();
     c1->Modified();
