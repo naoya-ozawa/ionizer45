@@ -1,4 +1,4 @@
-// A script to 
+// A script to
 // 1. Define a plane P(w) such that z = -x + sqrt(2)*w in Inventor coordinates
 // 2. Plot the "emittance" diagram in x-x' and y-y' planes
 // 3. Calculate the 2-sigma emittance value in terms of pi*rad*m
@@ -148,11 +148,21 @@ int main (int argc, char** argv){
 
     // Check input number here (w must be an input parameter)
     if (argc != 2){
-        cout << "usage: ./emittance45 <w>" << endl;
+        cout << "usage: ./emittance45 <FC or MCP or number>" << endl;
         exit(1);
     }
 
-    double w = strtod(argv[1],NULL);
+    double w, radius;
+    string plane = argv[1];
+    if (plane == "FC"){
+      w = w_FC;
+      radius = R_FC;
+    }else if (plane == "MCP"){
+      w = w_MCP;
+      radius = R_MCP;
+    }else{
+      double w = strtod(argv[1],NULL);
+    }
     cout << "At w = " << w << " mm:" << endl;
 
     TRint rootapp("app",&argc,argv);
@@ -197,6 +207,9 @@ int main (int argc, char** argv){
     // Emittance diagram resolution
     int diagram = 65;
 
+    // Circle points
+    int ellipse_points = 1000;
+
     // Convert CSV to ROOT
     ifstream simion_output( zx_file );
     if (!simion_output){
@@ -237,7 +250,7 @@ int main (int argc, char** argv){
             }
             catch (const invalid_argument& e){
                 // Catch the EOF
-                cout << "Read " << k << " lines from " << zx_file << endl; 
+                cout << "Read " << k << " lines from " << zx_file << endl;
                 k = -1;
             }
         }
@@ -294,6 +307,16 @@ int main (int argc, char** argv){
     }
     src->Draw("colz");
 
+    // Draw the Au target circle
+    TPolyLine *src_circ = new TPolyLine(PLpts);
+    for (int k = 0; k < PLpts; ++k){
+        double X = R_target*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        double Y = R_target*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        src_circ->SetPoint(k,X,Y);
+    }
+    src_circ->SetLineWidth(3);
+    src_circ->SetLineColor(2);
+    src_circ->Draw();
 
 
 
@@ -326,7 +349,7 @@ int main (int argc, char** argv){
 
 
 
-    // Show beam profile at the given w with end view (y-->x, +z-x-->y) 
+    // Show beam profile at the given w with end view (y-->x, +z-x-->y)
     c1->cd(2);
 
     double stepfrontX = 0.0;
@@ -359,7 +382,7 @@ int main (int argc, char** argv){
         velocz[i] = -9999.;
     }
 
-    TH2D *mcp = new TH2D("mcp","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
+    TH2D *mcp = new TH2D("bpm","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     int mcp_hits = 0;
 
     TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
@@ -415,7 +438,7 @@ int main (int argc, char** argv){
 
             // Check the position wrt P(w)
             double d_p = dist_testplane(w,x_0,x_d,z_0,z_d,h);
-     
+
             if ( d_p > 0.0 ){// The ion passed P(w)
                 // t_trj
                 trjptx[i] = t_trj(w,x_0,x_d,z_0,z_d)*x_d + x_0;
@@ -500,12 +523,23 @@ int main (int argc, char** argv){
 
     double phi_X = TMath::ATan(0.5 * Covar_x / (StDev_xM*StDev_xM - StDev_xp*StDev_xp) );
     double phi_Y = TMath::ATan(0.5 * Covar_y / (StDev_yM*StDev_yM - StDev_yp*StDev_yp) );
-   
+
     mcp->Draw("colz");
+
+    // Draw the MCP/FC circle
+    TPolyLine *bpm_circ = new TPolyLine(PLpts);
+    for (int k = 0; k < PLpts; ++k){
+        double X = radius*TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        double Y = radius*TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        bpm_circ->SetPoint(k,X,Y);
+    }
+    bpm_circ->SetLineWidth(3);
+    bpm_circ->SetLineColor(2);
+    bpm_circ->Draw();
 
 
     c1->cd(6);
-   
+
     TLatex l_mcp;
     l_mcp.SetTextAlign(12);
     l_mcp.SetTextSize(0.05);
@@ -524,18 +558,16 @@ int main (int argc, char** argv){
 
     c1->cd(3);
 
-    int ellipse_points = 1000;
-    
     hemit->Draw("COLZ");
 
     double correlation_x = Covar_x/(StDev_xM*StDev_xp);
     double stdev_emittance_x = 4.0*StDev_xM*StDev_xp * TMath::Sqrt(1.0 - correlation_x);
 
     // Draw the horizontal 2-sigma ellipse
-    TPolyLine *hemit_2sigma = new TPolyLine(ellipse_points);
-    for (int k = 0; k < ellipse_points; ++k){
-        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
-        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+    TPolyLine *hemit_2sigma = new TPolyLine(PLpts);
+    for (int k = 0; k < PLpts; ++k){
+        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
         double X = TMath::Cos(phi_X)*2.0*StDev_xM*cosfactor - TMath::Sin(phi_X)*2.0*StDev_xp*sinfactor + xM_mean;
         double Y = TMath::Sin(phi_X)*2.0*StDev_xM*cosfactor + TMath::Cos(phi_X)*2.0*StDev_xp*sinfactor + xp_mean;
 
@@ -556,10 +588,10 @@ int main (int argc, char** argv){
     double stdev_emittance_y = 4.0*StDev_yM*StDev_yp * TMath::Sqrt(1.0 - correlation_y);
 
     // Draw the vertical 2-sigma ellipse
-    TPolyLine *vemit_2sigma = new TPolyLine(ellipse_points);
-    for (int k = 0; k < ellipse_points; ++k){
-        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
-        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(ellipse_points-1));
+    TPolyLine *vemit_2sigma = new TPolyLine(PLpts);
+    for (int k = 0; k < PLpts; ++k){
+        double cosfactor = TMath::Cos(2.*double(k)*TMath::Pi()/double(PLpts-1));
+        double sinfactor = TMath::Sin(2.*double(k)*TMath::Pi()/double(PLpts-1));
         double X = TMath::Cos(phi_Y)*2.0*StDev_yM*cosfactor - TMath::Sin(phi_Y)*2.0*StDev_yp*sinfactor + yM_mean;
         double Y = TMath::Sin(phi_Y)*2.0*StDev_yM*cosfactor + TMath::Cos(phi_Y)*2.0*StDev_yp*sinfactor + yp_mean;
 
@@ -617,4 +649,3 @@ int main (int argc, char** argv){
     return 0;
 
 }
-
