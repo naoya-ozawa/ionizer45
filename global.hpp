@@ -7,12 +7,15 @@
 
 
 // グローバル定数宣言と初期化
+const double origX = 315.0;
+const double origY = 253.7;
+const double origZ = 130.0;
 const double h = 29.0;
-const char *filepath = "./../";
+const char *filepath = "./../model_20200625/";
 // const char *filepath = "./"; // for local test
 const int PLpts = 1000;
 const double R_target = 6.0;
 const double R_MCP = 12.5;
-const double w_MCP = 462.;
+const double w_MCP = 460.;
 const double R_FC = 6.5;
-const double w_FC = 447.;
+const double w_FC = 425.;

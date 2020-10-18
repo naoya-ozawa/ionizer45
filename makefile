@@ -1,6 +1,6 @@
 ## SET FILEPATHS HERE ##
 #CSVPATH = ./../ ## FOR LOCAL TESTING
-CSVPATH	= ./../
+CSVPATH	= ./../model_20200625/
 ########################
 
 all:	rms45.cpp

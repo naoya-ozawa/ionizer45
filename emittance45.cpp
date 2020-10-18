@@ -275,36 +275,32 @@ int main (int argc, char** argv){
 
 
     // Find the source center point and draw upper-view 2d histo (x-->-y, y-->x)
-    // This will define the origin in Inventor coordinates
     c1->cd(1);
     zxfocus->Draw(">>src_elist","step_number == 0","goff");
     TEventList *src_elist = (TEventList *)gDirectory->Get("src_elist");
     double src_CPx = 0.0;
     double src_CPy = 0.0;
-    double src_CPz = 0.0;
     double src_RMSx = 0.0;
     double src_RMSy = 0.0;
 
     TH2D *src = new TH2D("src","Generated Ions at Target;X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     for (int i = 0; i < Nions; ++i){
         zxfocus->GetEntry(src_elist->GetEntry(i));
-        src_CPx += X_position;
-        src_CPy += Y_position;
-        src_CPz += Z_position;
-    }
-    src_CPx /= Nions;
-    src_CPy /= Nions;
-    src_CPz /= Nions;
-
-    cout << "source at (" << src_CPx << ", " << src_CPy << ", " << src_CPz << ")_SIMION" << endl;
-
-    for (int i = 0; i < Nions; ++i){
-        zxfocus->GetEntry(src_elist->GetEntry(i));
-        double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
-        double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
+        double srcx = position_on_target(X_position,Y_position,origX,origY,"x");
+        double srcy = position_on_target(X_position,Y_position,origX,origY,"y");
         src->Fill(srcx,srcy);
+        src_CPx += srcx;
+        src_CPy += srcy;
+        src_RMSx += srcx*srcx;
+        src_RMSy += srcy*srcy;
 //        cout << "start point for ion " << i+1 << " = (" << srcx << ", " << srcy << ")_BPM" << endl;
     }
+    src_CPx /= double(Nions);
+    src_CPy /= double(Nions);
+    src_RMSx /= double(Nions);
+    src_RMSy /= double(Nions);
+    double src_StDevx = TMath::Sqrt(src_RMSx - src_CPx*src_CPx);
+    double src_StDevy = TMath::Sqrt(src_RMSy - src_CPy*src_CPy);
     src->Draw("colz");
 
     // Draw the Au target circle
@@ -321,24 +317,15 @@ int main (int argc, char** argv){
 
 
     c1->cd(5);
-    for (int i = 0; i < Nions; ++i){
-        zxfocus->GetEntry(src_elist->GetEntry(i));
-        double srcx = position_on_target(X_position,Y_position,src_CPx,src_CPy,"x");
-        double srcy = position_on_target(X_position,Y_position,src_CPx,src_CPy,"y");
-        src_RMSx += srcx*srcx;
-        src_RMSy += srcy*srcy;
-    }
-    src_RMSx = TMath::Sqrt(src_RMSx/Nions);
-    src_RMSy = TMath::Sqrt(src_RMSy/Nions);
 
     TLatex l_src;
     l_src.SetTextAlign(12);
     l_src.SetTextSize(0.05);
     l_src.DrawLatex(0.15,0.9,"Ion Source");
-    l_src.DrawLatex(0.15,0.8,"MEANx = 0 [mm]"); // By definition
-    l_src.DrawLatex(0.15,0.7,"MEANy = 0 [mm]"); // By definition
-    l_src.DrawLatex(0.15,0.6,Form("RMSx = %g [mm]",src_RMSx));
-    l_src.DrawLatex(0.15,0.5,Form("RMSy = %g [mm]",src_RMSy));
+    l_src.DrawLatex(0.15,0.8,Form("MEANx = %g [mm]",src_CPx));
+    l_src.DrawLatex(0.15,0.7,Form("MEANy = %g [mm]",src_CPy));
+    l_src.DrawLatex(0.15,0.6,Form("StDevx = %g [mm]",src_StDevx));
+    l_src.DrawLatex(0.15,0.5,Form("StDevy = %g [mm]",src_StDevy));
     l_src.DrawLatex(0.15,0.4,Form("Number of Flown Particles = %d",Nions));
 
 
@@ -417,9 +404,9 @@ int main (int argc, char** argv){
             velfrontZ = Z_velocity;
 
             // vec{P_b}
-            double x_0 = stepbackX - src_CPx;
-            double y_0 = stepbackY - src_CPy;
-            double z_0 = stepbackZ - src_CPz - h;
+            double x_0 = stepbackX - origX;
+            double y_0 = stepbackY - origY;
+            double z_0 = stepbackZ - origZ;
 
             // d/dt vec{P_b}
             double vx_0 = velbackX;
