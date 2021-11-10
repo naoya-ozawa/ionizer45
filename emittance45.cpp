@@ -372,8 +372,8 @@ int main (int argc, char** argv){
     TH2D *mcp = new TH2D("bpm","Beam at P(w);X (mm);Y (mm)",pix,-15.5,15.5,pix,-15.5,15.5);
     int mcp_hits = 0;
 
-    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
-    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y_{M} (mm);Y' = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-50.,50.);
+    TH2D *hemit = new TH2D("hemit","Horizontal emittance diagram at P(w);X_{M} (mm);X' = arctan(v_{x}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-130.,130.);
+    TH2D *vemit = new TH2D("vemit","Vertical emittance diagram at P(w);Y_{M} (mm);Y' = arctan(v_{y}/v_{z}) (mrad)",diagram,-10.,10.,diagram,-130.,130.);
 
     double xM_mean = 0.0;
     double xM_sqmn = 0.0;
@@ -545,6 +545,7 @@ int main (int argc, char** argv){
 
     c1->cd(3);
 
+    hemit->GetYaxis()->SetTitleOffset(1.4);
     hemit->Draw("COLZ");
 
     double correlation_x = Covar_x/(StDev_xM*StDev_xp);
@@ -569,6 +570,8 @@ int main (int argc, char** argv){
 
 
     c1->cd(4);
+
+    vemit->GetYaxis()->SetTitleOffset(1.4);
     vemit->Draw("COLZ");
 
     double correlation_y = Covar_y/(StDev_yM*StDev_yp);
