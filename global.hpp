@@ -18,4 +18,4 @@ const double R_target = 6.0;
 const double R_MCP = 14./2.; // Y target
 const double w_MCP = 419.; // Y target
 const double R_FC = 10./2.; // SFC center
-const double w_FC = 533.5; // SFC center
+const double w_FC = 532.; // SFC center
